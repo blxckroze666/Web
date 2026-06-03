@@ -1,0 +1,1253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="theme-color" content="#0d1117"/>
+  <title>Home Spark</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --card: #161b27;
+      --card2: #1e2535;
+      --border: #2a3350;
+      --accent: #4ade80;
+      --accent2: #60a5fa;
+      --accent3: #f472b6;
+      --gold: #fbbf24;
+      --red: #f87171;
+      --text: #e8f0fe;
+      --muted: #6b7fa3;
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    html, body {
+      height: 100%; overflow: hidden;
+      font-family: 'Nunito', sans-serif;
+      background: var(--bg); color: var(--text);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── APP SHELL ── */
+    .app {
+      display: flex; flex-direction: column;
+      height: 100vh; height: 100dvh;
+      padding-top: var(--safe-top);
+    }
+
+    /* ── HEADER ── */
+    .header {
+      background: linear-gradient(135deg, #0f1a2e, #0d1a0d);
+      padding: 12px 18px;
+      display: flex; align-items: center; gap: 10px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .logo-icon {
+      width: 38px; height: 38px; border-radius: 11px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; box-shadow: 0 0 16px #4ade8044;
+      flex-shrink: 0;
+    }
+    .logo-text {
+      font-family: 'Fredoka', sans-serif; font-size: 22px; font-weight: 700;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .logo-sub { font-size: 10px; color: var(--muted); margin-top: -2px; }
+    .header-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+
+    /* Voice */
+    .voice-btn {
+      width: 42px; height: 42px; border-radius: 50%;
+      border: 2px solid var(--border); background: var(--card2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; cursor: pointer; transition: all .2s;
+    }
+    .voice-btn.listening {
+      border-color: var(--red); background: #f8717118;
+      animation: pulse 1s ease-in-out infinite;
+    }
+    @keyframes pulse { 0%,100%{box-shadow:0 0 0 0 #f8717144} 50%{box-shadow:0 0 0 12px #f8717100} }
+
+    .sync-btn {
+      width: 42px; height: 42px; border-radius: 50%;
+      border: 2px solid var(--border); background: var(--card2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; cursor: pointer;
+    }
+
+    /* ── VOICE BAR ── */
+    .voice-bar {
+      display: none; background: #0a1a0a;
+      border-bottom: 1px solid #4ade8033;
+      padding: 10px 18px; align-items: center; gap: 10px;
+      flex-shrink: 0;
+    }
+    .voice-bar.active { display: flex; }
+    .wave { display: flex; align-items: center; gap: 3px; }
+    .wave span {
+      width: 3px; background: var(--accent); border-radius: 2px;
+      animation: wavebar .6s ease-in-out infinite;
+    }
+    .wave span:nth-child(1){height:8px;animation-delay:0s}
+    .wave span:nth-child(2){height:18px;animation-delay:.1s}
+    .wave span:nth-child(3){height:13px;animation-delay:.2s}
+    .wave span:nth-child(4){height:22px;animation-delay:.3s}
+    .wave span:nth-child(5){height:11px;animation-delay:.4s}
+    @keyframes wavebar{0%,100%{transform:scaleY(1)}50%{transform:scaleY(1.8)}}
+    .voice-text { font-size: 12px; color: var(--accent); font-weight: 800; flex: 1; }
+    .voice-result { font-size: 10px; color: var(--muted); margin-top: 2px; }
+
+    /* ── CONTENT ── */
+    .content {
+      flex: 1; overflow-y: auto; overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: calc(70px + var(--safe-bottom));
+    }
+    .content::-webkit-scrollbar { display: none; }
+
+    /* ── BOTTOM NAV ── */
+    .bottom-nav {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: #0f1420ee;
+      backdrop-filter: blur(20px);
+      border-top: 1px solid var(--border);
+      display: flex;
+      padding-bottom: var(--safe-bottom);
+      flex-shrink: 0;
+      z-index: 100;
+    }
+    .nav-item {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 10px 4px; cursor: pointer;
+      transition: all .2s; position: relative;
+    }
+    .nav-item.active .nav-icon { transform: translateY(-3px); }
+    .nav-icon { font-size: 22px; transition: transform .2s; margin-bottom: 3px; }
+    .nav-label {
+      font-size: 9px; font-weight: 800; letter-spacing: .3px;
+      color: var(--muted); transition: color .2s;
+    }
+    .nav-item.active .nav-label { color: var(--accent); }
+    .nav-dot {
+      position: absolute; top: 8px; right: calc(50% - 14px);
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--red); display: none;
+    }
+    .nav-dot.show { display: block; }
+
+    /* ── VIEWS ── */
+    .view { display: none; padding: 0; }
+    .view.active { display: block; }
+
+    /* ── SECTION LABEL ── */
+    .sec-label {
+      font-size: 10px; font-weight: 800; letter-spacing: 1.2px;
+      text-transform: uppercase; color: var(--muted);
+      padding: 14px 18px 6px;
+    }
+
+    /* ── ADD ROW ── */
+    .add-row {
+      display: flex; gap: 8px; padding: 8px 14px 10px;
+    }
+    .add-input {
+      flex: 1; background: var(--card2);
+      border: 1px solid var(--border); border-radius: 12px;
+      padding: 11px 14px; color: var(--text);
+      font-family: 'Nunito', sans-serif; font-size: 14px;
+      outline: none; -webkit-appearance: none;
+    }
+    .add-input:focus { border-color: var(--accent); }
+    .add-input::placeholder { color: var(--muted); }
+    .add-btn {
+      padding: 11px 18px; border: none; border-radius: 12px;
+      background: linear-gradient(90deg, var(--accent), #22c55e);
+      color: #052e16; font-family: 'Nunito', sans-serif;
+      font-size: 14px; font-weight: 800; cursor: pointer;
+      white-space: nowrap;
+    }
+
+    /* ── GROCERY ITEMS ── */
+    .item-list { padding: 0 14px 8px; display: flex; flex-direction: column; gap: 6px; }
+    .grocery-item {
+      display: flex; align-items: center;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 16px; padding: 12px 14px; gap: 10px;
+      transition: all .2s; position: relative;
+    }
+    .grocery-item.empty-item { border-color: #f8717144; background: #1a0d0d; }
+    .grocery-item.on-list { border-color: #fbbf2444; background: #1a160a; }
+    .g-emoji { font-size: 22px; flex-shrink: 0; }
+    .g-name { flex: 1; font-size: 14px; font-weight: 700; }
+    .g-qty {
+      font-size: 13px; font-weight: 800; color: var(--muted);
+      background: var(--card2); border-radius: 10px;
+      padding: 3px 10px; min-width: 32px; text-align: center;
+    }
+    .g-qty.low { color: var(--gold); }
+    .g-qty.empty { color: var(--red); }
+    .dep-btn {
+      width: 38px; height: 38px; border-radius: 10px;
+      border: 1px solid var(--border); background: var(--card2);
+      color: var(--muted); font-size: 20px; font-weight: 800;
+      cursor: pointer; display: flex; align-items: center;
+      justify-content: center; transition: all .15s;
+      flex-shrink: 0; -webkit-appearance: none;
+    }
+    .dep-btn:active { background: #f8717122; border-color: var(--red); color: var(--red); transform: scale(.92); }
+    .restock-pill {
+      font-size: 10px; font-weight: 800; padding: 4px 10px;
+      border-radius: 20px; border: 1px solid #fbbf2444;
+      background: #fbbf2415; color: var(--gold); cursor: pointer;
+      white-space: nowrap; flex-shrink: 0;
+    }
+    .on-list-pill {
+      font-size: 10px; font-weight: 800; padding: 4px 10px;
+      border-radius: 20px; border: 1px solid #4ade8044;
+      background: #4ade8015; color: var(--accent);
+      white-space: nowrap; flex-shrink: 0;
+    }
+    .del-btn {
+      width: 30px; height: 30px; border-radius: 8px;
+      border: none; background: transparent; color: var(--muted);
+      font-size: 16px; cursor: pointer; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .del-btn:active { color: var(--red); }
+
+    /* ── LIST HEADER ── */
+    .list-hdr {
+      display: flex; align-items: center; gap: 8px;
+      padding: 12px 18px 4px;
+    }
+    .list-hdr-title { font-size: 14px; font-weight: 800; flex: 1; }
+    .hdr-btn {
+      font-size: 11px; font-weight: 800; padding: 6px 14px;
+      border-radius: 20px; border: none;
+      background: linear-gradient(90deg, var(--accent2), #818cf8);
+      color: #fff; cursor: pointer;
+    }
+    .empty-badge {
+      font-size: 11px; font-weight: 800;
+      background: #f8717122; color: var(--red);
+      border: 1px solid #f8717133; border-radius: 10px;
+      padding: 3px 10px; display: none;
+    }
+
+    /* ── SHOPPING PANEL ── */
+    .shop-panel {
+      display: none; padding: 12px 14px;
+    }
+    .shop-panel.active { display: block; }
+    .shop-item {
+      display: flex; align-items: center; gap: 10px;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 14px; padding: 12px 14px; margin-bottom: 8px;
+    }
+    .shop-got {
+      padding: 6px 14px; border-radius: 10px;
+      border: 1px solid #4ade8044; background: #4ade8015;
+      color: var(--accent); font-size: 12px; font-weight: 800;
+      cursor: pointer; margin-left: auto;
+    }
+
+    /* ── CHORES ── */
+    .chore-item {
+      display: flex; align-items: center;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 16px; padding: 13px 14px; gap: 11px;
+      margin-bottom: 6px; transition: all .2s;
+    }
+    .chore-item.done { opacity: .45; }
+    .chore-check {
+      width: 28px; height: 28px; border-radius: 9px;
+      border: 2px solid var(--border); background: transparent;
+      cursor: pointer; display: flex; align-items: center;
+      justify-content: center; transition: all .2s; flex-shrink: 0;
+    }
+    .chore-check.checked { background: var(--accent); border-color: var(--accent); }
+    .chore-check.checked::after { content: '✓'; color: #052e16; font-size: 15px; font-weight: 900; }
+    .chore-info { flex: 1; }
+    .chore-name { font-size: 14px; font-weight: 700; }
+    .chore-name.done-txt { text-decoration: line-through; }
+    .chore-who { font-size: 11px; color: var(--muted); margin-top: 2px; }
+    .chore-pts {
+      font-size: 11px; font-weight: 800; color: var(--gold);
+      background: #fbbf2415; border: 1px solid #fbbf2433;
+      border-radius: 10px; padding: 3px 9px; flex-shrink: 0;
+    }
+
+    /* ── MEALS ── */
+    .meal-day {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 16px; padding: 14px 16px; margin-bottom: 8px;
+      cursor: pointer; transition: all .2s; active: none;
+    }
+    .meal-day:active { border-color: var(--accent3); transform: scale(.98); }
+    .meal-day-hdr { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+    .meal-day-name { font-size: 11px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: .8px; }
+    .today-badge {
+      font-size: 9px; font-weight: 800; padding: 2px 8px;
+      border-radius: 8px; background: #f472b615; color: var(--accent3);
+      border: 1px solid #f472b633;
+    }
+    .meal-name { font-size: 16px; font-weight: 800; margin-bottom: 5px; }
+    .meal-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+    .meal-tag {
+      font-size: 10px; font-weight: 800; padding: 3px 9px;
+      border-radius: 9px; background: var(--card2);
+      color: var(--muted); border: 1px solid var(--border);
+    }
+    .meal-tag.kid { background: #4ade8015; color: var(--accent); border-color: #4ade8033; }
+    .meal-tag.quick { background: #60a5fa15; color: var(--accent2); border-color: #60a5fa33; }
+    .meal-empty { font-size: 13px; color: var(--muted); font-style: italic; }
+
+    /* Meal detail */
+    .meal-detail { display: none; padding: 14px 16px; }
+    .meal-detail.active { display: block; }
+    .back-row { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+    .back-btn {
+      background: var(--card2); border: none; border-radius: 10px;
+      color: var(--muted); padding: 8px 14px; font-size: 13px;
+      font-weight: 800; cursor: pointer; font-family: 'Nunito', sans-serif;
+    }
+    .detail-title { font-family: 'Fredoka', sans-serif; font-size: 24px; font-weight: 700; margin-bottom: 4px; }
+    .detail-sub { font-size: 12px; color: var(--muted); margin-bottom: 14px; }
+    .step {
+      display: flex; gap: 12px; align-items: flex-start;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 14px; padding: 13px 14px; margin-bottom: 8px;
+      cursor: pointer; transition: opacity .2s;
+    }
+    .step.done { opacity: .4; }
+    .step-num {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent3), #a855f7);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 900; color: #fff; flex-shrink: 0;
+    }
+    .step-text { font-size: 14px; line-height: 1.5; }
+    .step-kid { font-size: 11px; color: var(--accent); margin-top: 4px; font-style: italic; }
+
+    /* ── KIDS LUNCHES ── */
+    .kids-section {
+      margin: 0 14px 10px;
+      background: linear-gradient(135deg, #0a1a0a, #0a1020);
+      border: 1px solid #4ade8033; border-radius: 16px; overflow: hidden;
+    }
+    .kids-hdr {
+      display: flex; align-items: center; gap: 10px;
+      padding: 13px 16px; cursor: pointer;
+    }
+    .kids-hdr-title { font-size: 14px; font-weight: 800; color: var(--accent); flex: 1; }
+    .kids-arrow { font-size: 13px; color: var(--muted); transition: transform .2s; }
+    .kids-arrow.open { transform: rotate(180deg); }
+    .kids-body { display: none; padding: 12px 14px 14px; border-top: 1px solid #4ade8022; }
+    .kids-body.open { display: block; }
+    .age-row { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; align-items: center; }
+    .age-lbl { font-size: 12px; font-weight: 800; color: var(--muted); }
+    .age-inp {
+      width: 60px; background: var(--card2);
+      border: 1px solid var(--border); border-radius: 10px;
+      padding: 8px 10px; color: var(--text);
+      font-family: 'Nunito', sans-serif; font-size: 14px;
+      font-weight: 800; text-align: center; outline: none;
+      -webkit-appearance: none;
+    }
+    .age-inp:focus { border-color: var(--accent); }
+    .age-add {
+      padding: 8px 16px; border: none; border-radius: 10px;
+      background: var(--accent); color: #052e16;
+      font-family: 'Nunito', sans-serif; font-size: 13px; font-weight: 800; cursor: pointer;
+    }
+    .kids-tags { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 12px; }
+    .kid-tag {
+      display: flex; align-items: center; gap: 5px;
+      background: #4ade8015; border: 1px solid #4ade8033;
+      border-radius: 20px; padding: 4px 12px;
+      font-size: 11px; font-weight: 800; color: var(--accent);
+    }
+    .kid-rm { cursor: pointer; color: var(--muted); font-size: 13px; }
+    .lunch-grp { margin-bottom: 12px; }
+    .lunch-grp-title {
+      font-size: 11px; font-weight: 800; color: var(--muted);
+      text-transform: uppercase; letter-spacing: .8px;
+      margin-bottom: 8px; display: flex; align-items: center; gap: 7px;
+    }
+    .lunch-range {
+      background: var(--card2); border-radius: 8px;
+      padding: 2px 8px; font-size: 10px; color: var(--accent2);
+      border: 1px solid var(--border);
+    }
+    .lunch-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .lunch-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 14px; padding: 13px 12px; cursor: pointer;
+      transition: all .2s;
+    }
+    .lunch-card:active { border-color: var(--accent); transform: scale(.96); }
+    .lunch-emoji { font-size: 28px; margin-bottom: 7px; }
+    .lunch-name { font-size: 13px; font-weight: 800; margin-bottom: 3px; }
+    .lunch-time { font-size: 10px; color: var(--muted); }
+    .lunch-diff {
+      font-size: 9px; font-weight: 800; padding: 2px 7px;
+      border-radius: 6px; margin-top: 5px; display: inline-block;
+    }
+    .diff-easy { background: #4ade8015; color: var(--accent); border: 1px solid #4ade8033; }
+    .diff-medium { background: #fbbf2415; color: var(--gold); border: 1px solid #fbbf2433; }
+
+    /* ── ROUTINES ── */
+    .routine-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 16px; padding: 14px 16px; margin-bottom: 8px;
+    }
+    .routine-hdr { display: flex; align-items: center; gap: 9px; margin-bottom: 10px; }
+    .routine-icon { font-size: 22px; }
+    .routine-name { font-size: 15px; font-weight: 800; flex: 1; }
+    .routine-time { font-size: 12px; color: var(--accent2); font-weight: 800; }
+    .routine-task {
+      display: flex; align-items: center; gap: 9px;
+      padding: 8px 0; border-bottom: 1px solid var(--border);
+    }
+    .routine-task:last-child { border-bottom: none; }
+    .rt-check {
+      width: 22px; height: 22px; border-radius: 7px;
+      border: 2px solid var(--border); background: transparent;
+      cursor: pointer; display: flex; align-items: center;
+      justify-content: center; flex-shrink: 0; transition: all .2s;
+    }
+    .rt-check.done { background: var(--accent2); border-color: var(--accent2); }
+    .rt-check.done::after { content: '✓'; color: #fff; font-size: 11px; font-weight: 900; }
+    .rt-text { font-size: 13px; }
+    .rt-text.done { text-decoration: line-through; color: var(--muted); }
+
+    /* ── SYNC MODAL ── */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: #000000cc; z-index: 200;
+      align-items: flex-end; justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 24px 24px 0 0; padding: 24px 20px;
+      width: 100%; max-width: 480px;
+      padding-bottom: calc(24px + var(--safe-bottom));
+      animation: slideUp .3s ease;
+    }
+    @keyframes slideUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
+    .modal-handle {
+      width: 40px; height: 4px; background: var(--border);
+      border-radius: 4px; margin: 0 auto 18px;
+    }
+    .modal-title {
+      font-family: 'Fredoka', sans-serif; font-size: 22px; font-weight: 700;
+      text-align: center;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      margin-bottom: 6px;
+    }
+    .modal-sub { text-align: center; font-size: 12px; color: var(--muted); margin-bottom: 20px; line-height: 1.5; }
+    .sync-code-display {
+      background: var(--card2); border: 2px solid var(--accent);
+      border-radius: 16px; padding: 18px;
+      text-align: center; margin-bottom: 16px;
+    }
+    .sync-code-label { font-size: 10px; font-weight: 800; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px; }
+    .sync-code-val {
+      font-family: 'Fredoka', sans-serif; font-size: 32px; font-weight: 700;
+      color: var(--accent); letter-spacing: 4px;
+    }
+    .sync-code-note { font-size: 10px; color: var(--muted); margin-top: 6px; }
+    .copy-btn {
+      width: 100%; padding: 13px; border: none; border-radius: 14px;
+      background: linear-gradient(90deg, var(--accent), #22c55e);
+      color: #052e16; font-family: 'Fredoka', sans-serif;
+      font-size: 16px; font-weight: 700; cursor: pointer; margin-bottom: 10px;
+    }
+    .sync-divider { text-align: center; font-size: 11px; color: var(--muted); margin: 10px 0; }
+    .sync-input {
+      width: 100%; background: var(--card2);
+      border: 1px solid var(--border); border-radius: 14px;
+      padding: 13px 16px; color: var(--text);
+      font-family: 'Nunito', sans-serif; font-size: 16px;
+      font-weight: 800; text-align: center; letter-spacing: 2px;
+      outline: none; -webkit-appearance: none;
+      text-transform: uppercase; margin-bottom: 10px;
+    }
+    .sync-input:focus { border-color: var(--accent2); }
+    .sync-input::placeholder { color: var(--muted); letter-spacing: 0; font-size: 13px; text-transform: none; }
+    .join-btn {
+      width: 100%; padding: 13px; border: none; border-radius: 14px;
+      background: linear-gradient(90deg, var(--accent2), #818cf8);
+      color: #fff; font-family: 'Fredoka', sans-serif;
+      font-size: 16px; font-weight: 700; cursor: pointer; margin-bottom: 10px;
+    }
+    .modal-close {
+      display: block; text-align: center; font-size: 12px;
+      color: var(--muted); cursor: pointer; padding: 6px;
+    }
+
+    /* ── TOAST ── */
+    .toast {
+      position: fixed; bottom: calc(80px + var(--safe-bottom)); left: 50%;
+      transform: translateX(-50%);
+      background: var(--card2); border: 1px solid var(--accent);
+      border-radius: 20px; padding: 10px 20px;
+      font-size: 12px; font-weight: 800; color: var(--accent);
+      z-index: 300; opacity: 0; transition: opacity .3s;
+      white-space: nowrap; pointer-events: none;
+    }
+    .toast.show { opacity: 1; }
+
+    /* ── ADHD PROMPT ── */
+    .adhd-prompt {
+      margin: 8px 14px; padding: 12px 16px;
+      background: linear-gradient(135deg, #1a1040, #0d1a1a);
+      border: 1px solid #60a5fa33; border-radius: 14px;
+      display: flex; align-items: flex-start; gap: 10px;
+      animation: fadeIn .4s ease;
+    }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:translateY(0)} }
+    .prompt-emoji { font-size: 20px; flex-shrink: 0; margin-top: 1px; }
+    .prompt-text { font-size: 12px; color: #a0c4ff; line-height: 1.5; font-weight: 600; }
+    .prompt-close {
+      margin-left: auto; color: var(--muted); font-size: 16px;
+      cursor: pointer; flex-shrink: 0; padding: 0 0 0 8px;
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="logo-icon">🏠</div>
+    <div>
+      <div class="logo-text">Home Spark</div>
+      <div class="logo-sub">ADHD Family Manager</div>
+    </div>
+    <div class="header-right">
+      <div class="voice-btn" id="voiceBtn">🎤</div>
+      <div class="sync-btn" id="syncBtn" title="Sync across devices">🔗</div>
+    </div>
+  </div>
+
+  <!-- VOICE BAR -->
+  <div class="voice-bar" id="voiceBar">
+    <div class="wave"><span></span><span></span><span></span><span></span><span></span></div>
+    <div style="flex:1">
+      <div class="voice-text" id="voiceText">Listening…</div>
+      <div class="voice-result" id="voiceResult"></div>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content" id="content">
+
+    <!-- ══ GROCERY VIEW ══ -->
+    <div class="view active" id="groceryView">
+      <div id="groceryPrompt"></div>
+      <div class="list-hdr">
+        <div class="list-hdr-title">🧊 Fridge & Pantry</div>
+        <div class="empty-badge" id="emptyBadge">0 empty</div>
+        <button class="hdr-btn" id="shopBtn">🛒 List</button>
+      </div>
+      <div class="add-row">
+        <input class="add-input" id="gInput" placeholder="Add item (e.g. Milk, Eggs 12)…"/>
+        <button class="add-btn" id="gAddBtn">+</button>
+      </div>
+      <div class="item-list" id="groceryList"></div>
+      <div class="shop-panel" id="shopPanel">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+          <div style="font-size:14px;font-weight:800">🛒 Shopping List</div>
+          <button id="closeShop" style="margin-left:auto;background:var(--card2);border:1px solid var(--border);border-radius:10px;color:var(--muted);padding:6px 14px;font-size:12px;font-weight:800;cursor:pointer">✕ Close</button>
+        </div>
+        <div id="shopItems"></div>
+        <div style="font-size:11px;color:var(--muted);text-align:center;margin-top:8px">Tap ✓ Got it when you buy each item</div>
+      </div>
+    </div>
+
+    <!-- ══ CHORES VIEW ══ -->
+    <div class="view" id="choresView">
+      <div id="choresPrompt"></div>
+      <div class="add-row">
+        <input class="add-input" id="cInput" placeholder="Add chore…" style="flex:2"/>
+        <input class="add-input" id="cWho" placeholder="Who?" style="flex:1"/>
+        <button class="add-btn" id="cAddBtn" style="padding:11px 14px">+</button>
+      </div>
+      <div class="sec-label">Today's Chores</div>
+      <div class="item-list" id="choreList"></div>
+      <div style="text-align:center;padding:10px 18px;font-size:11px;color:var(--muted)">⭐ Kids earn points for every chore completed!</div>
+    </div>
+
+    <!-- ══ MEALS VIEW ══ -->
+    <div class="view" id="mealsView">
+      <div id="mealGrid">
+        <div class="add-row">
+          <input class="add-input" id="mDay" placeholder="Day (Mon…)" style="max-width:100px"/>
+          <input class="add-input" id="mName" placeholder="Meal name…"/>
+          <button class="add-btn" id="mAddBtn" style="padding:11px 14px">+</button>
+        </div>
+        <div class="item-list" id="mealList"></div>
+        <!-- Kids lunch section -->
+        <div class="kids-section" id="kidsSection">
+          <div class="kids-hdr" id="kidsToggle">
+            <span style="font-size:22px">👧</span>
+            <div class="kids-hdr-title">Kids Can Make This!</div>
+            <div style="font-size:10px;color:var(--muted);margin-right:6px">by age</div>
+            <div class="kids-arrow" id="kidsArrow">▼</div>
+          </div>
+          <div class="kids-body" id="kidsBody">
+            <div class="age-row">
+              <div class="age-lbl">Kid age:</div>
+              <input class="age-inp" type="number" id="ageInp" min="4" max="17" placeholder="8"/>
+              <button class="age-add" id="ageAddBtn">+ Add</button>
+            </div>
+            <div class="kids-tags" id="kidTags"></div>
+            <div id="lunchOptions"></div>
+          </div>
+        </div>
+      </div>
+      <div class="meal-detail" id="mealDetail">
+        <div class="back-row">
+          <button class="back-btn" id="mealBack">← Back</button>
+          <div style="font-size:11px;color:var(--muted)">Tap steps to check off</div>
+        </div>
+        <div class="detail-title" id="detailTitle"></div>
+        <div class="detail-sub" id="detailSub"></div>
+        <div id="stepsList"></div>
+      </div>
+    </div>
+
+    <!-- ══ ROUTINES VIEW ══ -->
+    <div class="view" id="routineView">
+      <div id="routinesPrompt"></div>
+      <div class="sec-label">Daily Routines</div>
+      <div class="item-list" id="routineList"></div>
+    </div>
+
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav">
+    <div class="nav-item active" data-view="groceryView">
+      <div class="nav-icon">🛒</div>
+      <div class="nav-label">Groceries</div>
+      <div class="nav-dot" id="groceryDot"></div>
+    </div>
+    <div class="nav-item" data-view="choresView">
+      <div class="nav-icon">🧹</div>
+      <div class="nav-label">Chores</div>
+    </div>
+    <div class="nav-item" data-view="mealsView">
+      <div class="nav-icon">🍽️</div>
+      <div class="nav-label">Meals</div>
+    </div>
+    <div class="nav-item" data-view="routineView">
+      <div class="nav-icon">⏰</div>
+      <div class="nav-label">Routines</div>
+    </div>
+  </nav>
+
+</div><!-- /app -->
+
+<!-- SYNC MODAL -->
+<div class="modal-overlay" id="syncModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">🔗 Sync Devices</div>
+    <div class="modal-sub">Use your sync code to access your data on any device — phone, tablet, or computer. No account needed.</div>
+    <div class="sync-code-display">
+      <div class="sync-code-label">Your Sync Code</div>
+      <div class="sync-code-val" id="syncCodeDisplay">----</div>
+      <div class="sync-code-note">Share this code with your other devices</div>
+    </div>
+    <button class="copy-btn" id="copyCodeBtn">📋 Copy Code</button>
+    <div class="sync-divider">— or enter a code from another device —</div>
+    <input class="sync-input" id="syncInput" placeholder="Enter sync code (e.g. SPARK-4829)" maxlength="10"/>
+    <button class="join-btn" id="joinCodeBtn">🔄 Load That Device's Data</button>
+    <span class="modal-close" id="closeSyncModal">Close</span>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ══ DATA ══════════════════════════════════════════════════════════
+
+const DEFAULT_GROCERY = [
+  {id:1,name:'Milk',emoji:'🥛',qty:1,max:1,addToList:false},
+  {id:2,name:'Eggs',emoji:'🥚',qty:12,max:12,addToList:false},
+  {id:3,name:'Bread',emoji:'🍞',qty:1,max:1,addToList:false},
+  {id:4,name:'Butter',emoji:'🧈',qty:2,max:2,addToList:false},
+  {id:5,name:'Apples',emoji:'🍎',qty:6,max:6,addToList:false},
+];
+
+const DEFAULT_CHORES = [
+  {id:1,name:'Wash dishes',who:'Everyone',done:false,points:10},
+  {id:2,name:'Take out trash',who:'Dad/Mom',done:false,points:15},
+  {id:3,name:'Vacuum',who:'Kids',done:false,points:20},
+  {id:4,name:'Wipe counters',who:'Everyone',done:false,points:10},
+];
+
+const DEFAULT_MEALS = {
+  Mon:{name:'Spaghetti & Meatballs',tags:['kid-friendly','quick'],steps:[
+    {text:'Boil water — add a pinch of salt',kid:'🧒 Kids can measure the salt!'},
+    {text:'Cook spaghetti 8–10 mins',kid:null},
+    {text:'Warm marinara sauce in a pan',kid:'🧒 Kids can stir the sauce!'},
+    {text:'Add meatballs to sauce',kid:null},
+    {text:'Drain pasta, top with sauce',kid:'🧒 Kids can add the cheese!'},
+  ]},
+  Tue:{name:'Chicken Tacos',tags:['kid-friendly','quick'],steps:[
+    {text:'Season chicken with taco seasoning',kid:null},
+    {text:'Cook chicken 6–7 mins each side',kid:null},
+    {text:'Shred or slice the chicken',kid:null},
+    {text:'Warm tortillas 20 sec in microwave',kid:'🧒 Kids can wrap their own!'},
+    {text:'Set out toppings',kid:'🧒 Kids pick toppings!'},
+  ]},
+  Wed:{name:'Mac & Cheese + Veggies',tags:['kid-friendly','easy'],steps:[
+    {text:'Cook mac & cheese per box',kid:null},
+    {text:'Steam broccoli in microwave 3 mins',kid:'🧒 Kids can pick the veggie!'},
+    {text:'Mix in cheese sauce',kid:'🧒 Kids can stir!'},
+    {text:'Serve with veggies on side',kid:null},
+  ]},
+  Thu:null,
+  Fri:{name:'Pizza Night 🍕',tags:['kid-friendly','fun'],steps:[
+    {text:'Preheat oven to 425°F',kid:null},
+    {text:'Spread sauce on dough',kid:'🧒 Kids can spread sauce!'},
+    {text:'Add cheese and toppings',kid:'🧒 Kids pick their toppings!'},
+    {text:'Bake 12–15 mins until golden',kid:null},
+    {text:'Cool 2 mins then slice',kid:null},
+  ]},
+  Sat:null,
+  Sun:{name:'Sunday Pancakes',tags:['kid-friendly','fun'],steps:[
+    {text:'Mix batter — add egg, milk, stir well',kid:'🧒 Kids can mix!'},
+    {text:'Heat pan on medium with butter',kid:null},
+    {text:'Pour ¼ cup batter per pancake',kid:null},
+    {text:'Flip when bubbles form (~2 mins)',kid:null},
+    {text:'Serve with syrup and fruit',kid:'🧒 Kids can add toppings!'},
+  ]},
+};
+
+const DEFAULT_ROUTINES = [
+  {id:1,icon:'🌅',name:'Morning Routine',time:'7:00 AM',tasks:[
+    {text:'Wake up & stretch',done:false},
+    {text:'Get dressed',done:false},
+    {text:'Breakfast',done:false},
+    {text:'Pack school bag',done:false},
+    {text:'Teeth + shoes',done:false},
+  ]},
+  {id:2,icon:'🌙',name:'Evening Routine',time:'7:00 PM',tasks:[
+    {text:'Homework done',done:false},
+    {text:'Tidy bedroom',done:false},
+    {text:'Bath / shower',done:false},
+    {text:'Lay out tomorrow\'s clothes',done:false},
+    {text:'Lights out by 8:30',done:false},
+  ]},
+];
+
+const KIDS_LUNCHES = {
+  little:{label:'Little Ones',range:'Ages 4–7',meals:[
+    {emoji:'🥜',name:'PB&J Sandwich',time:'3 mins',diff:'easy',steps:['Get 2 slices of bread','Spread peanut butter on one side','Spread jelly on the other','Press together and cut in half!']},
+    {emoji:'🥣',name:'Cereal & Milk',time:'2 mins',diff:'easy',steps:['Pour cereal in a bowl','Add milk carefully','Grab a spoon and enjoy!']},
+    {emoji:'🍌',name:'Banana & Crackers',time:'2 mins',diff:'easy',steps:['Peel a banana','Put crackers on a plate','Add cheese slices if you want!']},
+    {emoji:'🧀',name:'Cheese & Crackers',time:'3 mins',diff:'easy',steps:['Put crackers on a plate','Add cheese slices','Add grapes or apple slices']},
+  ]},
+  middle:{label:'Getting Good',range:'Ages 8–11',meals:[
+    {emoji:'🥪',name:'Deli Sandwich',time:'5 mins',diff:'easy',steps:['Get 2 slices of bread','Add mayo or mustard','Layer deli meat and cheese','Add lettuce and tomato','Cut and serve with chips!']},
+    {emoji:'🍜',name:'Microwave Ramen',time:'5 mins',diff:'easy',steps:['Break noodles in a bowl','Add water to cover','Microwave 3 minutes','Add seasoning packet carefully','Let cool before eating!']},
+    {emoji:'🫔',name:'Veggie Wrap',time:'5 mins',diff:'easy',steps:['Lay a tortilla flat','Spread hummus or cream cheese','Add veggies and meat','Roll tight and cut in half']},
+    {emoji:'🥗',name:'Simple Salad',time:'5 mins',diff:'medium',steps:['Grab a bowl','Add lettuce or spinach','Add croutons, cheese, veggies','Drizzle dressing and toss!']},
+  ]},
+  older:{label:'Almost a Chef',range:'Ages 12+',meals:[
+    {emoji:'🧇',name:'Scrambled Eggs',time:'8 mins',diff:'medium',steps:['Crack 2 eggs in a bowl','Add splash of milk and whisk','Melt butter in pan on medium','Pour eggs in and stir gently','Remove when just set!']},
+    {emoji:'🥪',name:'Grilled Cheese',time:'8 mins',diff:'medium',steps:['Butter one side of each slice','Put cheese between unbuttered sides','Cook buttered-side down on medium','Flip after 2-3 mins','Cut diagonally — fancy!']},
+    {emoji:'🍝',name:'Pasta + Sauce',time:'15 mins',diff:'medium',steps:['Boil water — add salt','Cook pasta 8-10 mins','Drain carefully — it\'s hot!','Heat sauce in pan or microwave','Mix together and add cheese!']},
+    {emoji:'🌮',name:'Quesadilla',time:'8 mins',diff:'medium',steps:['Put tortilla in pan on medium','Add cheese on one half','Fold over and press','Cook 2 mins each side','Slice and serve with salsa!']},
+  ]},
+};
+
+const ADHD_PROMPTS = {
+  grocery: [
+    {emoji:'🌟',text:"You've got this! Start with just one item at a time."},
+    {emoji:'🎯',text:"Stuck? Just tap the − button for whatever you used last."},
+    {emoji:'💪',text:"Every item you track is one less thing to remember. Keep going!"},
+  ],
+  chores: [
+    {emoji:'⚡',text:"Pick the easiest chore first — getting started is the hardest part!"},
+    {emoji:'🎮',text:"Make it a game: how fast can you knock off the first chore?"},
+    {emoji:'🌟',text:"Done is better than perfect. One chore at a time!"},
+  ],
+  routines: [
+    {emoji:'🌅',text:"Routines get easier every time. You're building something great!"},
+    {emoji:'💡',text:"Stuck on a step? Just do the next tiny action — that's enough."},
+    {emoji:'🎯',text:"You don't have to do it perfectly. Just do the next thing."},
+  ],
+};
+
+// ══ STATE ══════════════════════════════════════════════════════════
+let groceryList = [], choreList = [], mealPlan = {}, routines = [], kidsAges = [];
+let isPro = false;
+let syncCode = '';
+
+// ══ STORAGE ════════════════════════════════════════════════════════
+const LS = {
+  get: (k, fb) => { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : fb; } catch { return fb; } },
+  set: (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+};
+
+// ══ SYNC CODE ══════════════════════════════════════════════════════
+function generateCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code = 'SPARK-';
+  for (let i = 0; i < 4; i++) code += chars[Math.floor(Math.random()*chars.length)];
+  return code;
+}
+
+function saveAllData() {
+  const data = { groceryList, choreList, mealPlan, routines, kidsAges, ts: Date.now() };
+  LS.set('hs_data', data);
+  if (syncCode) LS.set(`hs_sync_${syncCode}`, data);
+}
+
+function loadByCode(code) {
+  const data = LS.get(`hs_sync_${code}`, null);
+  if (!data) return false;
+  groceryList = data.groceryList ?? DEFAULT_GROCERY;
+  choreList   = data.choreList   ?? DEFAULT_CHORES;
+  mealPlan    = data.mealPlan    ?? DEFAULT_MEALS;
+  routines    = data.routines    ?? DEFAULT_ROUTINES;
+  kidsAges    = data.kidsAges    ?? [];
+  saveAllData();
+  return true;
+}
+
+// ══ VOICE ══════════════════════════════════════════════════════════
+let recognition = null, listening = false;
+
+function initVoice() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) return;
+  recognition = new SR();
+  recognition.continuous = false;
+  recognition.interimResults = true;
+  recognition.lang = 'en-US';
+  recognition.onresult = e => {
+    const t = Array.from(e.results).map(r=>r[0].transcript).join('');
+    document.getElementById('voiceText').textContent = t;
+    if (e.results[0].isFinal) processVoice(t.toLowerCase().trim());
+  };
+  recognition.onend = () => stopListen();
+  recognition.onerror = () => stopListen();
+}
+
+function startListen() {
+  if (!recognition) { showToast('Voice not available'); return; }
+  listening = true;
+  document.getElementById('voiceBtn').classList.add('listening');
+  document.getElementById('voiceBtn').textContent = '🔴';
+  document.getElementById('voiceBar').classList.add('active');
+  document.getElementById('voiceText').textContent = 'Listening…';
+  document.getElementById('voiceResult').textContent = '';
+  recognition.start();
+}
+
+function stopListen() {
+  listening = false;
+  document.getElementById('voiceBtn').classList.remove('listening');
+  document.getElementById('voiceBtn').textContent = '🎤';
+  setTimeout(() => document.getElementById('voiceBar').classList.remove('active'), 2000);
+  try { recognition?.stop(); } catch {}
+}
+
+function processVoice(cmd) {
+  let result = '';
+  if (cmd.match(/(finished|ran out|used up|out of|used the last)/)) {
+    const item = groceryList.find(i => cmd.includes(i.name.toLowerCase()));
+    if (item) { depleteItem(item.id, true); result = `Got it! ${item.name} added to shopping list 🛒`; speak(result); }
+    else result = "Which item did you finish?";
+  } else if (cmd.match(/(add|need).*(grocery|groceries|fridge|pantry|list)/)) {
+    const words = cmd.replace(/add|need|to|the|a|an|grocery|groceries|fridge|pantry|list/g,'').trim().split(' ').filter(w=>w.length>1);
+    const name = words.slice(0,2).join(' ');
+    if (name) { addGrocery(name); result = `Added ${name}! ✅`; speak(result); }
+  } else if (cmd.match(/(what'?s? for|tonight|dinner)/)) {
+    const days=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    const today=days[new Date().getDay()];
+    const meal=mealPlan[today];
+    result = meal ? `Tonight: ${meal.name}!` : "No meal planned tonight. Tap Meals to add one!";
+    speak(meal ? `Tonight you're making ${meal.name}` : "No meal planned for tonight yet.");
+  } else if (cmd.match(/(mark|done|finished|complete)/)) {
+    const chore = choreList.find(c => cmd.includes(c.name.toLowerCase().split(' ')[0]));
+    if (chore) { toggleChore(chore.id, true); result = `${chore.name} done! ⭐ +${chore.points}pts`; speak(`Great job! ${chore.name} is done!`); }
+    else result = "Which chore is done?";
+  } else {
+    result = "Try: 'I finished the milk' or 'What's for dinner?'";
+  }
+  document.getElementById('voiceResult').textContent = result;
+}
+
+function speak(text) {
+  const u = new SpeechSynthesisUtterance(text);
+  u.rate = 0.95; u.pitch = 1.1;
+  speechSynthesis.speak(u);
+}
+
+// ══ ADHD PROMPTS ═══════════════════════════════════════════════════
+function showPrompt(view) {
+  const el = document.getElementById(`${view}Prompt`);
+  if (!el) return;
+  const prompts = ADHD_PROMPTS[view];
+  if (!prompts) return;
+  const p = prompts[Math.floor(Math.random()*prompts.length)];
+  el.innerHTML = `
+    <div class="adhd-prompt">
+      <div class="prompt-emoji">${p.emoji}</div>
+      <div class="prompt-text">${p.text}</div>
+      <div class="prompt-close" onclick="this.parentElement.parentElement.innerHTML=''">✕</div>
+    </div>`;
+}
+
+// ══ GROCERY ════════════════════════════════════════════════════════
+function renderGrocery() {
+  const list = document.getElementById('groceryList');
+  const empty = groceryList.filter(i=>i.addToList).length;
+  const badge = document.getElementById('emptyBadge');
+  badge.textContent = `${empty} empty`;
+  badge.style.display = empty > 0 ? 'block' : 'none';
+  document.getElementById('groceryDot').classList.toggle('show', empty > 0);
+  list.innerHTML = '';
+  groceryList.forEach(item => {
+    const div = document.createElement('div');
+    div.className = `grocery-item${item.qty===0?' empty-item':item.addToList?' on-list':''}`;
+    div.innerHTML = `
+      <div class="g-emoji">${item.emoji||'🛒'}</div>
+      <div class="g-name">${item.name}</div>
+      <div class="g-qty ${item.qty===0?'empty':item.qty<=Math.ceil(item.max*.25)?'low':''}">${item.qty}</div>
+      ${item.qty>0?`<button class="dep-btn" data-id="${item.id}">−</button>`:''}
+      ${item.qty===0?`<button class="restock-pill" data-rs="${item.id}">Restock</button>`:''}
+      ${item.addToList?`<div class="on-list-pill">🛒 List</div>`:''}
+      <button class="del-btn" data-dl="${item.id}">✕</button>
+    `;
+    list.appendChild(div);
+  });
+  list.querySelectorAll('.dep-btn').forEach(b => b.addEventListener('click',()=>depleteItem(parseInt(b.dataset.id))));
+  list.querySelectorAll('[data-rs]').forEach(b => b.addEventListener('click',()=>restockItem(parseInt(b.dataset.rs))));
+  list.querySelectorAll('[data-dl]').forEach(b => b.addEventListener('click',()=>{groceryList=groceryList.filter(i=>i.id!==parseInt(b.dataset.dl));saveAllData();renderGrocery();}));
+}
+
+function depleteItem(id, force=false) {
+  const item = groceryList.find(i=>i.id===id);
+  if (!item) return;
+  if (force) { item.qty=0; item.addToList=true; }
+  else {
+    item.qty = Math.max(0, item.qty-1);
+    if (item.qty===0) { item.addToList=true; showToast(`${item.name} ran out — added to list! 🛒`); }
+    else if (item.qty<=Math.ceil(item.max*.25)) showToast(`⚠️ ${item.name} running low (${item.qty} left)`);
+  }
+  saveAllData(); renderGrocery();
+}
+
+function restockItem(id) {
+  const item = groceryList.find(i=>i.id===id);
+  if (!item) return;
+  item.qty=item.max; item.addToList=false;
+  saveAllData(); renderGrocery(); showToast(`${item.name} restocked! ✅`);
+}
+
+function addGrocery(raw) {
+  const parts = raw.trim().split(' ');
+  const qty = parseInt(parts[parts.length-1])||1;
+  const name = isNaN(parseInt(parts[parts.length-1])) ? raw.trim() : parts.slice(0,-1).join(' ');
+  const emap = {milk:'🥛',eggs:'🥚',bread:'🍞',butter:'🧈',apple:'🍎',banana:'🍌',chicken:'🍗',beef:'🥩',rice:'🍚',pasta:'🍝',cheese:'🧀',yogurt:'🥛',juice:'🧃',coffee:'☕',cereal:'🥣',flour:'🌾',sugar:'🍬',onion:'🧅',garlic:'🧄',potato:'🥔',tomato:'🍅',carrot:'🥕',broccoli:'🥦'};
+  const emoji = Object.entries(emap).find(([k])=>name.toLowerCase().includes(k))?.[1]||'🛒';
+  const cap = name.charAt(0).toUpperCase()+name.slice(1);
+  groceryList.push({id:Date.now(),name:cap,emoji,qty,max:qty,addToList:false});
+  saveAllData(); renderGrocery(); showToast(`${cap} added! ✅`);
+}
+
+function renderShopPanel() {
+  const items = groceryList.filter(i=>i.addToList);
+  const el = document.getElementById('shopItems');
+  el.innerHTML = '';
+  if (!items.length) { el.innerHTML='<div style="font-size:13px;color:var(--muted);text-align:center;padding:16px">Nothing on the list! 🎉</div>'; return; }
+  items.forEach(item => {
+    const div = document.createElement('div');
+    div.className = 'shop-item';
+    div.innerHTML = `<span style="font-size:20px">${item.emoji}</span><span style="flex:1;font-size:14px;font-weight:700">${item.name}</span><button class="shop-got" data-sg="${item.id}">✓ Got it</button>`;
+    el.appendChild(div);
+  });
+  el.querySelectorAll('[data-sg]').forEach(b=>b.addEventListener('click',()=>{restockItem(parseInt(b.dataset.sg));renderShopPanel();}));
+}
+
+// ══ CHORES ═════════════════════════════════════════════════════════
+function renderChores() {
+  const list = document.getElementById('choreList');
+  list.innerHTML = '';
+  choreList.forEach(c => {
+    const div = document.createElement('div');
+    div.className = `chore-item${c.done?' done':''}`;
+    div.innerHTML = `
+      <div class="chore-check ${c.done?'checked':''}" data-cid="${c.id}"></div>
+      <div class="chore-info">
+        <div class="chore-name${c.done?' done-txt':''}">${c.name}</div>
+        <div class="chore-who">👤 ${c.who}</div>
+      </div>
+      <div class="chore-pts">⭐ ${c.points}pts</div>
+      <button class="del-btn" data-cdl="${c.id}">✕</button>
+    `;
+    list.appendChild(div);
+  });
+  list.querySelectorAll('.chore-check').forEach(b=>b.addEventListener('click',()=>toggleChore(parseInt(b.dataset.cid))));
+  list.querySelectorAll('[data-cdl]').forEach(b=>b.addEventListener('click',()=>{choreList=choreList.filter(c=>c.id!==parseInt(b.dataset.cdl));saveAllData();renderChores();}));
+}
+
+function toggleChore(id, force=false) {
+  const c = choreList.find(c=>c.id===id);
+  if (!c) return;
+  c.done = force ? true : !c.done;
+  if (c.done) showToast(`⭐ ${c.name} done! +${c.points}pts`);
+  saveAllData(); renderChores();
+}
+
+function addChoreItem(name, who) {
+  choreList.push({id:Date.now(),name:name.charAt(0).toUpperCase()+name.slice(1),who:who||'Everyone',done:false,points:10});
+  saveAllData(); renderChores();
+}
+
+// ══ MEALS ══════════════════════════════════════════════════════════
+function renderMeals() {
+  const list = document.getElementById('mealList');
+  const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const today = days[new Date().getDay()===0?6:new Date().getDay()-1];
+  list.innerHTML = '';
+  days.forEach(day => {
+    const meal = mealPlan[day];
+    const div = document.createElement('div');
+    div.className = 'meal-day';
+    div.innerHTML = `
+      <div class="meal-day-hdr">
+        <div class="meal-day-name">${day}</div>
+        ${day===today?'<div class="today-badge">TODAY</div>':''}
+      </div>
+      ${meal
+        ? `<div class="meal-name">${meal.name}</div>
+           <div class="meal-tags">${(meal.tags||[]).map(t=>`<div class="meal-tag ${t.includes('kid')?'kid':t.includes('quick')?'quick':''}">${t}</div>`).join('')}</div>`
+        : `<div class="meal-empty">No meal planned</div>`}
+    `;
+    if (meal) div.addEventListener('click', ()=>showMealDetail(day, meal));
+    list.appendChild(div);
+  });
+}
+
+function showMealDetail(day, meal) {
+  document.getElementById('mealGrid').style.display = 'none';
+  document.getElementById('mealDetail').classList.add('active');
+  document.getElementById('detailTitle').textContent = meal.name;
+  document.getElementById('detailSub').textContent = `${day}'s dinner — tap each step to check it off`;
+  const sl = document.getElementById('stepsList');
+  sl.innerHTML = '';
+  (meal.steps||[]).forEach((s,i) => {
+    const div = document.createElement('div');
+    div.className = 'step';
+    div.innerHTML = `<div class="step-num">${i+1}</div><div><div class="step-text">${s.text}</div>${s.kid?`<div class="step-kid">${s.kid}</div>`:''}</div>`;
+    div.addEventListener('click',()=>div.classList.toggle('done'));
+    sl.appendChild(div);
+  });
+}
+
+function showLunchDetail(meal) {
+  document.getElementById('mealGrid').style.display = 'none';
+  document.getElementById('kidsSection').style.display = 'none';
+  document.getElementById('mealDetail').classList.add('active');
+  document.getElementById('detailTitle').textContent = `${meal.emoji} ${meal.name}`;
+  document.getElementById('detailSub').textContent = `Kids can make this! ⏱ ${meal.time} · ${meal.diff}`;
+  const sl = document.getElementById('stepsList');
+  sl.innerHTML = '';
+  meal.steps.forEach((s,i) => {
+    const div = document.createElement('div');
+    div.className = 'step';
+    div.innerHTML = `<div class="step-num">${i+1}</div><div class="step-text">${s}</div>`;
+    div.addEventListener('click',()=>div.classList.toggle('done'));
+    sl.appendChild(div);
+  });
+}
+
+// ══ KIDS LUNCHES ═══════════════════════════════════════════════════
+function getAgeGroup(age) { return age<=7?'little':age<=11?'middle':'older'; }
+
+function renderKidsLunches() {
+  const tags = document.getElementById('kidTags');
+  const opts = document.getElementById('lunchOptions');
+  tags.innerHTML = '';
+  kidsAges.forEach((age,i) => {
+    const t = document.createElement('div');
+    t.className = 'kid-tag';
+    t.innerHTML = `👧 Age ${age} <span class="kid-rm" data-ki="${i}">✕</span>`;
+    tags.appendChild(t);
+  });
+  tags.querySelectorAll('.kid-rm').forEach(b=>b.addEventListener('click',()=>{kidsAges.splice(parseInt(b.dataset.ki),1);saveAllData();renderKidsLunches();}));
+  opts.innerHTML = '';
+  if (!kidsAges.length) { opts.innerHTML='<div style="font-size:12px;color:var(--muted);text-align:center;padding:10px">Add a kid\'s age above to see lunch ideas! 👆</div>'; return; }
+  [...new Set(kidsAges.map(a=>getAgeGroup(a)))].forEach(grp => {
+    const d = KIDS_LUNCHES[grp];
+    const div = document.createElement('div');
+    div.className = 'lunch-grp';
+    div.innerHTML = `<div class="lunch-grp-title">${d.label}<span class="lunch-range">${d.range}</span></div><div class="lunch-grid" id="lg-${grp}"></div>`;
+    opts.appendChild(div);
+    const grid = div.querySelector(`#lg-${grp}`);
+    d.meals.forEach(meal => {
+      const card = document.createElement('div');
+      card.className = 'lunch-card';
+      card.innerHTML = `<div class="lunch-emoji">${meal.emoji}</div><div class="lunch-name">${meal.name}</div><div class="lunch-time">⏱ ${meal.time}</div><div class="lunch-diff diff-${meal.diff}">${meal.diff}</div>`;
+      card.addEventListener('click',()=>showLunchDetail(meal));
+      grid.appendChild(card);
+    });
+  });
+}
+
+// ══ ROUTINES ═══════════════════════════════════════════════════════
+function renderRoutines() {
+  const list = document.getElementById('routineList');
+  list.innerHTML = '';
+  routines.forEach(r => {
+    const div = document.createElement('div');
+    div.className = 'routine-card';
+    div.innerHTML = `
+      <div class="routine-hdr">
+        <div class="routine-icon">${r.icon}</div>
+        <div class="routine-name">${r.name}</div>
+        <div class="routine-time">${r.time}</div>
+      </div>
+      ${r.tasks.map((t,i)=>`
+        <div class="routine-task">
+          <div class="rt-check ${t.done?'done':''}" data-rid="${r.id}" data-ti="${i}"></div>
+          <div class="rt-text${t.done?' done':''}">${t.text}</div>
+        </div>`).join('')}
+    `;
+    list.appendChild(div);
+  });
+  list.querySelectorAll('.rt-check').forEach(b=>b.addEventListener('click',()=>{
+    const r=routines.find(x=>x.id===parseInt(b.dataset.rid));
+    if(r){r.tasks[parseInt(b.dataset.ti)].done=!r.tasks[parseInt(b.dataset.ti)].done;saveAllData();renderRoutines();}
+  }));
+}
+
+// ══ NAV & VIEWS ════════════════════════════════════════════════════
+function switchView(id) {
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById(id)?.classList.add('active');
+  document.querySelector(`[data-view="${id}"]`)?.classList.add('active');
+  // Show random ADHD prompt
+  const map = {groceryView:'grocery',choresView:'chores',routineView:'routines'};
+  if (map[id]) showPrompt(map[id]);
+}
+
+// ══ TOAST ══════════════════════════════════════════════════════════
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2500);
+}
+
+// ══ INIT ═══════════════════════════════════════════════════════════
+function init() {
+  const saved = LS.get('hs_data', null);
+  if (saved) {
+    groceryList = saved.groceryList ?? DEFAULT_GROCERY;
+    choreList   = saved.choreList   ?? DEFAULT_CHORES;
+    mealPlan    = saved.mealPlan    ?? DEFAULT_MEALS;
+    routines    = saved.routines    ?? DEFAULT_ROUTINES;
+    kidsAges    = saved.kidsAges    ?? [];
+  } else {
+    groceryList = DEFAULT_GROCERY;
+    choreList   = DEFAULT_CHORES;
+    mealPlan    = DEFAULT_MEALS;
+    routines    = DEFAULT_ROUTINES;
+  }
+
+  syncCode = LS.get('hs_syncCode', '') || generateCode();
+  LS.set('hs_syncCode', syncCode);
+  document.getElementById('syncCodeDisplay').textContent = syncCode;
+
+  renderGrocery(); renderChores(); renderMeals(); renderRoutines(); renderKidsLunches();
+  showPrompt('grocery');
+  initVoice();
+
+  // Nav
+  document.querySelectorAll('.nav-item').forEach(n=>n.addEventListener('click',()=>switchView(n.dataset.view)));
+
+  // Voice
+  document.getElementById('voiceBtn').addEventListener('click',()=>{if(listening)stopListen();else startListen();});
+
+  // Grocery
+  document.getElementById('gAddBtn').addEventListener('click',()=>{const v=document.getElementById('gInput').value.trim();if(v){addGrocery(v);document.getElementById('gInput').value='';}});
+  document.getElementById('gInput').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('gAddBtn').click();});
+  document.getElementById('shopBtn').addEventListener('click',()=>{document.getElementById('groceryList').style.display='none';document.getElementById('shopPanel').classList.add('active');renderShopPanel();});
+  document.getElementById('closeShop').addEventListener('click',()=>{document.getElementById('shopPanel').classList.remove('active');document.getElementById('groceryList').style.display='flex';});
+
+  // Chores
+  document.getElementById('cAddBtn').addEventListener('click',()=>{const n=document.getElementById('cInput').value.trim(),w=document.getElementById('cWho').value.trim();if(n){addChoreItem(n,w);document.getElementById('cInput').value='';document.getElementById('cWho').value='';}});
+
+  // Meals
+  document.getElementById('mAddBtn').addEventListener('click',()=>{
+    const day=document.getElementById('mDay').value.trim();
+    const name=document.getElementById('mName').value.trim();
+    const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+    const match=days.find(d=>day.toLowerCase().startsWith(d.toLowerCase()));
+    if(match&&name){
+      mealPlan[match]={name,tags:['custom'],steps:[{text:'Prep your ingredients',kid:'🧒 Kids can help!'},{text:'Cook the meal',kid:null},{text:'Serve and enjoy!',kid:'🧒 Kids can set the table!'}]};
+      saveAllData();renderMeals();
+      document.getElementById('mDay').value='';document.getElementById('mName').value='';
+      showToast(`${name} added to ${match}! 🍽️`);
+    } else showToast('Enter a day (Mon, Tue…) and meal name');
+  });
+
+  // Meal back
+  document.getElementById('mealBack').addEventListener('click',()=>{
+    document.getElementById('mealGrid').style.display='block';
+    document.getElementById('kidsSection').style.display='block';
+    document.getElementById('mealDetail').classList.remove('active');
+  });
+
+  // Kids lunch
+  document.getElementById('kidsToggle').addEventListener('click',()=>{
+    document.getElementById('kidsBody').classList.toggle('open');
+    document.getElementById('kidsArrow').classList.toggle('open');
+  });
+  document.getElementById('ageAddBtn').addEventListener('click',()=>{
+    const age=parseInt(document.getElementById('ageInp').value);
+    if(age>=4&&age<=17){kidsAges.push(age);saveAllData();document.getElementById('ageInp').value='';renderKidsLunches();document.getElementById('kidsBody').classList.add('open');document.getElementById('kidsArrow').classList.add('open');}
+    else showToast('Enter an age between 4 and 17');
+  });
+
+  // Sync
+  document.getElementById('syncBtn').addEventListener('click',()=>document.getElementById('syncModal').classList.add('open'));
+  document.getElementById('closeSyncModal').addEventListener('click',()=>document.getElementById('syncModal').classList.remove('open'));
+  document.getElementById('copyCodeBtn').addEventListener('click',()=>{
+    navigator.clipboard?.writeText(syncCode).then(()=>showToast('Code copied! 📋')).catch(()=>showToast(`Your code: ${syncCode}`));
+  });
+  document.getElementById('joinCodeBtn').addEventListener('click',()=>{
+    const code=document.getElementById('syncInput').value.trim().toUpperCase();
+    if(!code){showToast('Enter a sync code first');return;}
+    if(loadByCode(code)){syncCode=code;LS.set('hs_syncCode',code);document.getElementById('syncCodeDisplay').textContent=code;renderGrocery();renderChores();renderMeals();renderRoutines();renderKidsLunches();document.getElementById('syncModal').classList.remove('open');showToast('Data loaded! 🎉');}
+    else showToast('Code not found. Check and try again.');
+  });
+}
+
+init();
+</script>
+</body>
+</html>

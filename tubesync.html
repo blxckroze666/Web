@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="theme-color" content="#001a20"/>
+<title>TubeSync — Fan App</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg:#001a20; --card:#002a35; --card2:#003545;
+  --border:#004455; --cyan:#22d3ee; --green:#4ade80;
+  --red:#ff4444; --gold:#fbbf24; --orange:#f97316;
+  --text:#e0f8ff; --muted:#4a8a9a;
+  --safe-top:env(safe-area-inset-top,0px);
+  --safe-bottom:env(safe-area-inset-bottom,0px);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;}
+.app{display:flex;flex-direction:column;height:100vh;height:100dvh;padding-top:var(--safe-top);}
+
+/* HEADER */
+.header{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--card);flex-shrink:0;}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:3px;color:var(--cyan);}
+.logo span{color:var(--green);}
+.status-pill{display:flex;align-items:center;gap:6px;background:var(--card2);border:1px solid var(--border);border-radius:20px;padding:5px 12px;font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);}
+.status-dot{width:7px;height:7px;border-radius:50%;background:var(--muted);}
+.status-dot.live{background:var(--green);animation:pulse 1.5s infinite;}
+.status-dot.connecting{background:var(--gold);animation:pulse .8s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* CONTENT */
+.content{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding-bottom:calc(20px + var(--safe-bottom));}
+.content::-webkit-scrollbar{display:none;}
+
+/* CONNECT SCREEN */
+.connect-screen{padding:30px 20px;display:flex;flex-direction:column;align-items:center;text-align:center;}
+.connect-icon{font-size:64px;margin-bottom:16px;animation:float 3s ease-in-out infinite;}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.connect-title{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:3px;color:var(--cyan);margin-bottom:8px;}
+.connect-sub{font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:30px;max-width:280px;}
+
+/* CODE INPUT */
+.code-row{display:flex;gap:10px;justify-content:center;margin-bottom:20px;}
+.code-digit{width:56px;height:68px;background:var(--card);border:2px solid var(--border);border-radius:14px;color:var(--cyan);font-family:'Bebas Neue',sans-serif;font-size:36px;text-align:center;outline:none;-webkit-appearance:none;caret-color:var(--cyan);}
+.code-digit:focus{border-color:var(--cyan);box-shadow:0 0 16px #22d3ee33;}
+.connect-btn{width:100%;max-width:300px;padding:15px;border:none;border-radius:14px;background:linear-gradient(135deg,var(--cyan),#0891b2);color:#001a20;font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;cursor:pointer;transition:all .2s;box-shadow:0 4px 20px #22d3ee44;}
+.connect-btn:active{transform:scale(.97);}
+.connect-btn:disabled{opacity:.5;}
+.connect-hint{font-size:11px;color:var(--muted);margin-top:14px;font-family:'DM Mono',monospace;line-height:1.7;}
+
+/* FAN PANEL */
+.fan-panel{display:none;padding:16px;}
+.fan-panel.active{display:block;}
+
+/* ROOM INFO */
+.room-card{background:var(--card);border:1px solid var(--cyan)33;border-radius:16px;padding:14px 16px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;}
+.room-code{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:6px;color:var(--cyan);}
+.room-fans{font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;text-align:right;}
+.room-fans span{color:var(--green);font-size:18px;font-family:'Bebas Neue',sans-serif;display:block;}
+.leave-btn{background:none;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:11px;font-family:'DM Mono',monospace;padding:5px 10px;cursor:pointer;}
+
+/* TACTICAL OVERLAY */
+.section-title{font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:2px;color:var(--muted);margin-bottom:10px;}
+.pitch-container{position:relative;margin-bottom:16px;}
+.pitch{width:100%;aspect-ratio:68/105;background:linear-gradient(180deg,#1a4a1a 0%,#1e5a1e 50%,#1a4a1a 100%);border-radius:12px;border:2px solid #2a6a2a;overflow:hidden;cursor:crosshair;touch-action:none;}
+.pitch-lines{position:absolute;inset:0;pointer-events:none;}
+.tap-dot{position:absolute;width:20px;height:20px;border-radius:50%;background:var(--cyan);opacity:.9;transform:translate(-50%,-50%);animation:tapAnim .6s ease forwards;pointer-events:none;}
+@keyframes tapAnim{0%{transform:translate(-50%,-50%) scale(0);opacity:1}100%{transform:translate(-50%,-50%) scale(3);opacity:0}}
+.pitch-hint{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;}
+.pitch-hint-text{font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:2px;color:rgba(255,255,255,.2);}
+
+/* AUDIO BOARD */
+.audio-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
+.audio-btn{padding:18px 10px;border-radius:16px;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;transition:all .15s;-webkit-tap-highlight-color:transparent;}
+.audio-btn:active{transform:scale(.93);}
+.audio-emoji{font-size:28px;}
+.audio-label{font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;}
+.audio-btn.cheer{background:linear-gradient(135deg,#1a4a1a,#0a2a0a);border:1px solid #4ade8044;color:var(--green);}
+.audio-btn.cheer:active{background:#4ade8020;}
+.audio-btn.boo{background:linear-gradient(135deg,#4a1a1a,#2a0a0a);border:1px solid #ff444444;color:var(--red);}
+.audio-btn.boo:active{background:#ff444420;}
+.audio-btn.var{background:linear-gradient(135deg,#1a1a4a,#0a0a2a);border:1px solid #22d3ee44;color:var(--cyan);}
+.audio-btn.var:active{background:#22d3ee20;}
+.audio-btn.whistle{background:linear-gradient(135deg,#4a3a1a,#2a1a0a);border:1px solid #fbbf2444;color:var(--gold);}
+.audio-btn.whistle:active{background:#fbbf2420;}
+
+/* STATS BAR */
+.stats-bar{display:flex;gap:8px;margin-bottom:16px;}
+.stat-pill{flex:1;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px;text-align:center;}
+.stat-num{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--cyan);}
+.stat-lbl{font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:.5px;margin-top:2px;}
+
+/* DISCONNECTED */
+.disconnected-banner{display:none;background:#2a0a0a;border:1px solid #ff444433;border-radius:12px;padding:12px 16px;margin-bottom:16px;font-size:12px;color:var(--red);font-family:'DM Mono',monospace;text-align:center;}
+.disconnected-banner.show{display:block;}
+
+/* TOAST */
+.toast{position:fixed;bottom:calc(30px + var(--safe-bottom));left:16px;right:16px;background:rgba(0,0,0,.9);border:1px solid var(--cyan);border-radius:10px;padding:10px 16px;font-size:12px;font-weight:600;color:var(--cyan);z-index:300;opacity:0;transition:opacity .3s;pointer-events:none;text-align:center;font-family:'DM Mono',monospace;}
+.toast.show{opacity:1;}
+
+/* VIBRATE feedback */
+.ripple{position:fixed;border-radius:50%;background:rgba(34,211,238,.3);pointer-events:none;animation:rippleOut .4s ease forwards;}
+@keyframes rippleOut{0%{transform:scale(0);opacity:1}100%{transform:scale(4);opacity:0}}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="header">
+    <div class="logo">TUBE<span>SYNC</span></div>
+    <div class="status-pill">
+      <div class="status-dot" id="statusDot"></div>
+      <span id="statusText">not connected</span>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- CONNECT SCREEN -->
+    <div class="connect-screen" id="connectScreen">
+      <div class="connect-icon">⚽</div>
+      <div class="connect-title">Join the Room</div>
+      <div class="connect-sub">Enter the 4-digit code from the TubeSync extension on desktop to connect as a fan.</div>
+
+      <div class="code-row">
+        <input class="code-digit" id="d1" maxlength="1" type="tel" inputmode="numeric" pattern="[0-9]*" onkeyup="nextDigit(this,'d2')" oninput="autoJoin()"/>
+        <input class="code-digit" id="d2" maxlength="1" type="tel" inputmode="numeric" pattern="[0-9]*" onkeyup="nextDigit(this,'d3')" oninput="autoJoin()"/>
+        <input class="code-digit" id="d3" maxlength="1" type="tel" inputmode="numeric" pattern="[0-9]*" onkeyup="nextDigit(this,'d4')" oninput="autoJoin()"/>
+        <input class="code-digit" id="d4" maxlength="1" type="tel" inputmode="numeric" pattern="[0-9]*" oninput="autoJoin()"/>
+      </div>
+
+      <button class="connect-btn" id="connectBtn" onclick="joinRoom()" disabled>JOIN ROOM</button>
+
+      <div class="connect-hint">
+        1. Open TubeSync extension on desktop Chrome<br>
+        2. Navigate to a YouTube soccer video<br>
+        3. Click Start Room — enter the 4-digit code above
+      </div>
+    </div>
+
+    <!-- FAN PANEL -->
+    <div class="fan-panel" id="fanPanel">
+
+      <div class="disconnected-banner" id="discBanner">⚠️ Connection lost — trying to reconnect...</div>
+
+      <div class="room-card">
+        <div>
+          <div style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:1px;margin-bottom:4px">ROOM CODE</div>
+          <div class="room-code" id="roomCodeDisplay">----</div>
+        </div>
+        <div style="text-align:right">
+          <div class="room-fans"><span id="fanCount">1</span>fan(s) connected</div>
+          <button class="leave-btn" onclick="leaveRoom()">LEAVE</button>
+        </div>
+      </div>
+
+      <div class="stats-bar">
+        <div class="stat-pill"><div class="stat-num" id="tapStat">0</div><div class="stat-lbl">TAPS</div></div>
+        <div class="stat-pill"><div class="stat-num" id="audioStat">0</div><div class="stat-lbl">AUDIO</div></div>
+        <div class="stat-pill"><div class="stat-num" id="fanStat">1</div><div class="stat-lbl">FANS</div></div>
+      </div>
+
+      <div class="section-title">⚽ TAP THE PITCH</div>
+      <div class="pitch-container">
+        <div class="pitch" id="pitch">
+          <!-- Pitch lines SVG -->
+          <svg class="pitch-lines" viewBox="0 0 68 105" xmlns="http://www.w3.org/2000/svg">
+            <!-- Outer border -->
+            <rect x="2" y="2" width="64" height="101" fill="none" stroke="rgba(255,255,255,.2)" stroke-width=".5"/>
+            <!-- Center line -->
+            <line x1="2" y1="52.5" x2="66" y2="52.5" stroke="rgba(255,255,255,.2)" stroke-width=".5"/>
+            <!-- Center circle -->
+            <circle cx="34" cy="52.5" r="9" fill="none" stroke="rgba(255,255,255,.2)" stroke-width=".5"/>
+            <!-- Center spot -->
+            <circle cx="34" cy="52.5" r=".7" fill="rgba(255,255,255,.3)"/>
+            <!-- Top penalty box -->
+            <rect x="13.5" y="2" width="41" height="16" fill="none" stroke="rgba(255,255,255,.2)" stroke-width=".5"/>
+            <!-- Top goal box -->
+            <rect x="24" y="2" width="20" height="6" fill="none" stroke="rgba(255,255,255,.2)" stroke-width=".5"/>
+            <!-- Bottom penalty box -->
+            <rect x="13.5" y="87" width="41" height="16" fill="none" stroke="rgba(255,255,255,.2)" stroke-width=".5"/>
+            <!-- Bottom goal box -->
+            <rect x="24" y="97" width="20" height="6" fill="none" stroke="rgba(255,255,255,.2)" stroke-width=".5"/>
+          </svg>
+          <div class="pitch-hint"><div class="pitch-hint-text">TAP TO MARK</div></div>
+        </div>
+      </div>
+
+      <div class="section-title">🔊 CROWD AUDIO</div>
+      <div class="audio-grid">
+        <button class="audio-btn cheer" onclick="sendAudio('cheer',this)">
+          <div class="audio-emoji">🙌</div>
+          <div class="audio-label">CHEER</div>
+        </button>
+        <button class="audio-btn boo" onclick="sendAudio('boo',this)">
+          <div class="audio-emoji">👎</div>
+          <div class="audio-label">BOO</div>
+        </button>
+        <button class="audio-btn var" onclick="sendAudio('var',this)">
+          <div class="audio-emoji">📺</div>
+          <div class="audio-label">VAR!</div>
+        </button>
+        <button class="audio-btn whistle" onclick="sendAudio('whistle',this)">
+          <div class="audio-emoji">📯</div>
+          <div class="audio-label">WHISTLE</div>
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<script>
+const SERVER = 'https://tubesync-server.onrender.com';
+let socket = null;
+let roomCode = null;
+let tapCount = 0;
+let audioCount = 0;
+let isConnected = false;
+
+// Auto-fill code from URL param
+const urlParams = new URLSearchParams(window.location.search);
+const codeParam = urlParams.get('code');
+if (codeParam && codeParam.length === 4) {
+  const digits = codeParam.split('');
+  ['d1','d2','d3','d4'].forEach((id, i) => {
+    document.getElementById(id).value = digits[i] || '';
+  });
+  document.getElementById('connectBtn').disabled = false;
+  setTimeout(joinRoom, 500);
+}
+
+// ── DIGIT INPUT ───────────────────────────────────────────────────
+function nextDigit(el, nextId) {
+  if (el.value.length === 1 && nextId) {
+    document.getElementById(nextId)?.focus();
+  }
+  if (el.value.length === 0) {
+    const ids = ['d1','d2','d3','d4'];
+    const idx = ids.indexOf(el.id);
+    if (idx > 0) document.getElementById(ids[idx-1])?.focus();
+  }
+}
+
+function autoJoin() {
+  const code = getCode();
+  document.getElementById('connectBtn').disabled = code.length !== 4;
+  if (code.length === 4) setTimeout(joinRoom, 200);
+}
+
+function getCode() {
+  return ['d1','d2','d3','d4'].map(id => document.getElementById(id).value).join('');
+}
+
+// ── JOIN ROOM ─────────────────────────────────────────────────────
+function joinRoom() {
+  const code = getCode();
+  if (code.length !== 4) { showToast('Enter all 4 digits'); return; }
+  roomCode = code;
+  setStatus('connecting', 'connecting...');
+  connectSocket(code);
+}
+
+function connectSocket(code) {
+  if (socket) socket.disconnect();
+
+  socket = io(SERVER, { transports: ['websocket', 'polling'], reconnection: true, reconnectionAttempts: 5, reconnectionDelay: 2000 });
+
+  socket.on('connect', () => {
+    socket.emit('fan-join', { code });
+    isConnected = true;
+    setStatus('live', 'connected');
+    document.getElementById('connectScreen').style.display = 'none';
+    document.getElementById('fanPanel').classList.add('active');
+    document.getElementById('roomCodeDisplay').textContent = code;
+    document.getElementById('discBanner').classList.remove('show');
+    showToast('⚽ Joined Room ' + code + '!');
+    if (navigator.vibrate) navigator.vibrate([50, 30, 50]);
+  });
+
+  socket.on('fan-count', (count) => {
+    document.getElementById('fanCount').textContent = count;
+    document.getElementById('fanStat').textContent = count;
+  });
+
+  socket.on('disconnect', () => {
+    isConnected = false;
+    setStatus('', 'reconnecting...');
+    document.getElementById('discBanner').classList.add('show');
+  });
+
+  socket.on('reconnect', () => {
+    isConnected = true;
+    setStatus('live', 'connected');
+    document.getElementById('discBanner').classList.remove('show');
+    socket.emit('fan-join', { code: roomCode });
+  });
+
+  socket.on('connect_error', () => {
+    setStatus('', 'connection failed');
+    showToast('Could not connect — check the code');
+  });
+}
+
+function leaveRoom() {
+  if (socket) socket.disconnect();
+  socket = null;
+  roomCode = null;
+  isConnected = false;
+  tapCount = 0;
+  audioCount = 0;
+  setStatus('', 'not connected');
+  document.getElementById('connectScreen').style.display = 'flex';
+  document.getElementById('fanPanel').classList.remove('active');
+  document.getElementById('discBanner').classList.remove('show');
+  ['d1','d2','d3','d4'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('connectBtn').disabled = true;
+  document.getElementById('tapStat').textContent = '0';
+  document.getElementById('audioStat').textContent = '0';
+}
+
+// ── PITCH TAP ─────────────────────────────────────────────────────
+document.getElementById('pitch').addEventListener('click', function(e) {
+  if (!isConnected) { showToast('Connect to a room first'); return; }
+  const rect = this.getBoundingClientRect();
+  const x = ((e.clientX - rect.left) / rect.width * 100).toFixed(1);
+  const y = ((e.clientY - rect.top) / rect.height * 100).toFixed(1);
+
+  // Visual feedback
+  const dot = document.createElement('div');
+  dot.className = 'tap-dot';
+  dot.style.left = x + '%';
+  dot.style.top = y + '%';
+  this.appendChild(dot);
+  setTimeout(() => dot.remove(), 600);
+
+  // Send to server
+  socket.emit('fan-tactical-input', { x: parseFloat(x), y: parseFloat(y), type: 'tap', code: roomCode });
+
+  tapCount++;
+  document.getElementById('tapStat').textContent = tapCount;
+  if (navigator.vibrate) navigator.vibrate(30);
+});
+
+// Touch support for pitch
+document.getElementById('pitch').addEventListener('touchstart', function(e) {
+  e.preventDefault();
+  if (!isConnected) return;
+  const touch = e.touches[0];
+  const rect = this.getBoundingClientRect();
+  const x = ((touch.clientX - rect.left) / rect.width * 100).toFixed(1);
+  const y = ((touch.clientY - rect.top) / rect.height * 100).toFixed(1);
+
+  const dot = document.createElement('div');
+  dot.className = 'tap-dot';
+  dot.style.left = x + '%';
+  dot.style.top = y + '%';
+  this.appendChild(dot);
+  setTimeout(() => dot.remove(), 600);
+
+  socket.emit('fan-tactical-input', { x: parseFloat(x), y: parseFloat(y), type: 'tap', code: roomCode });
+  tapCount++;
+  document.getElementById('tapStat').textContent = tapCount;
+  if (navigator.vibrate) navigator.vibrate(30);
+}, { passive: false });
+
+// ── AUDIO ─────────────────────────────────────────────────────────
+function sendAudio(type, btn) {
+  if (!isConnected) { showToast('Connect to a room first'); return; }
+  socket.emit('fan-tactical-input', { type: 'audio_' + type, code: roomCode });
+  audioCount++;
+  document.getElementById('audioStat').textContent = audioCount;
+  if (navigator.vibrate) navigator.vibrate(type === 'cheer' ? [50,30,50] : 40);
+
+  // Visual ripple
+  const ripple = document.createElement('div');
+  ripple.className = 'ripple';
+  const rect = btn.getBoundingClientRect();
+  ripple.style.cssText = `width:${rect.width}px;height:${rect.height}px;left:${rect.left}px;top:${rect.top}px;position:fixed;z-index:999;`;
+  document.body.appendChild(ripple);
+  setTimeout(() => ripple.remove(), 400);
+}
+
+// ── STATUS ────────────────────────────────────────────────────────
+function setStatus(dotClass, text) {
+  const dot = document.getElementById('statusDot');
+  dot.className = 'status-dot' + (dotClass ? ' ' + dotClass : '');
+  document.getElementById('statusText').textContent = text;
+}
+
+// ── TOAST ─────────────────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('show'), 2500);
+}
+</script>
+</body>
+</html>

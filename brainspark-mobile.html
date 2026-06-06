@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="theme-color" content="#0d0a1f"/>
+<title>Brain Spark</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg:#0d0a1f; --card:#13101f; --card2:#1a1628;
+  --border:#2a2444; --accent:#a855f7; --pink:#ec4899;
+  --green:#4ade80; --gold:#fbbf24; --text:#f0eeff; --muted:#7c6fa0;
+  --safe-top:env(safe-area-inset-top,0px); --safe-bottom:env(safe-area-inset-bottom,0px);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;}
+.app{display:flex;flex-direction:column;height:100vh;height:100dvh;padding-top:var(--safe-top);}
+
+/* HEADER */
+.header{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--card);flex-shrink:0;}
+.logo{display:flex;align-items:center;gap:10px;}
+.logo-icon{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--pink));display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 0 16px #a855f744;}
+.logo-text{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;background:linear-gradient(90deg,var(--accent),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.pro-badge{font-size:9px;font-weight:700;padding:3px 9px;border-radius:20px;background:#a855f715;color:var(--accent);border:1px solid #a855f733;cursor:pointer;font-family:'DM Mono',monospace;letter-spacing:1px;}
+.pro-badge.active{background:#ffd70022;color:#ffd700;border-color:#ffd70044;}
+
+/* STREAK BAR */
+.streak-bar{padding:10px 18px;border-bottom:1px solid var(--border);background:var(--card);flex-shrink:0;}
+.streak-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
+.streak-label{font-size:10px;font-weight:700;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:.5px;}
+.streak-val{font-size:11px;font-weight:800;color:var(--gold);}
+.streak-track{height:5px;background:var(--card2);border-radius:3px;overflow:hidden;}
+.streak-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--pink));border-radius:3px;transition:width .5s ease;}
+
+/* TABS */
+.tabs{display:flex;border-bottom:1px solid var(--border);background:var(--card);flex-shrink:0;}
+.tab{flex:1;padding:12px 6px;text-align:center;font-size:11px;font-weight:700;letter-spacing:.3px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;font-family:'DM Mono',monospace;}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+
+/* CONTENT */
+.content{flex:1;overflow:hidden;position:relative;}
+.view{display:none;height:100%;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:20px;}
+.view::-webkit-scrollbar{display:none;}
+.view.active{display:block;}
+
+/* SECTION LABEL */
+.sec-label{font-size:9px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);padding:14px 18px 8px;}
+
+/* FEATURE TOGGLES */
+.feat-list{padding:0 14px;display:flex;flex-direction:column;gap:8px;}
+.feat-row{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:13px 14px;display:flex;align-items:center;gap:12px;}
+.feat-icon{font-size:20px;width:28px;text-align:center;flex-shrink:0;}
+.feat-info{flex:1;}
+.feat-name{font-size:13px;font-weight:700;margin-bottom:2px;}
+.feat-desc{font-size:10px;color:var(--muted);line-height:1.4;}
+.feat-lock{font-size:11px;color:var(--muted);background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:3px 8px;flex-shrink:0;cursor:pointer;}
+
+/* TOGGLE SWITCH */
+.toggle{position:relative;width:44px;height:24px;flex-shrink:0;}
+.toggle input{opacity:0;width:0;height:0;}
+.toggle-slider{position:absolute;cursor:pointer;inset:0;background:var(--card2);border:1px solid var(--border);border-radius:24px;transition:.3s;}
+.toggle-slider::before{content:'';position:absolute;width:18px;height:18px;left:2px;top:2px;background:var(--muted);border-radius:50%;transition:.3s;}
+.toggle input:checked+.toggle-slider{background:var(--accent);border-color:var(--accent);}
+.toggle input:checked+.toggle-slider::before{transform:translateX(20px);background:#fff;}
+
+/* OVERLAY SWATCHES */
+.swatches{display:flex;gap:8px;padding:0 18px 14px;flex-wrap:wrap;}
+.swatch{width:44px;height:44px;border-radius:12px;border:2px solid var(--border);cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;}
+.swatch.active{border-color:var(--accent);box-shadow:0 0 12px #a855f744;}
+
+/* GAMES */
+.games-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 14px;}
+.game-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:18px 14px;text-align:center;cursor:pointer;transition:all .2s;position:relative;}
+.game-card:active{transform:scale(.96);}
+.game-card.locked{opacity:.5;pointer-events:none;}
+.game-emoji{font-size:32px;margin-bottom:8px;}
+.game-name{font-size:13px;font-weight:800;margin-bottom:4px;}
+.game-desc{font-size:10px;color:var(--muted);line-height:1.4;}
+.game-lock{position:absolute;top:8px;right:8px;font-size:12px;}
+
+/* GAME CANVAS */
+.game-view{display:none;height:100%;flex-direction:column;padding:14px;}
+.game-view.active{display:flex;}
+.game-hdr{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+.back-btn{background:var(--card2);border:none;border-radius:10px;color:var(--muted);padding:8px 14px;font-size:13px;font-weight:800;cursor:pointer;font-family:'DM Sans',sans-serif;}
+.game-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;flex:1;}
+canvas{border-radius:14px;background:var(--card);border:1px solid var(--border);width:100%;display:block;}
+
+/* BREATHE GAME */
+.breathe-container{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;}
+.breathe-circle{width:180px;height:180px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--pink));display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:#fff;text-align:center;transition:transform 4s ease;box-shadow:0 0 40px #a855f744;}
+.breathe-phase{font-size:14px;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:1px;}
+.breathe-count{font-family:'Syne',sans-serif;font-size:48px;font-weight:800;color:var(--accent);}
+
+/* MEMORY GAME */
+.memory-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:0 4px;}
+.mem-card{aspect-ratio:1;border-radius:10px;background:var(--card2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:24px;cursor:pointer;transition:all .3s;user-select:none;}
+.mem-card.flipped{background:var(--card);border-color:var(--accent);}
+.mem-card.matched{background:#a855f720;border-color:var(--accent);opacity:.6;}
+.mem-card.hidden{visibility:hidden;}
+.memory-score{text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);margin-bottom:12px;}
+
+/* PARENT VIEW */
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 14px;}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;text-align:center;}
+.stat-val{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:var(--accent);}
+.stat-lbl{font-size:10px;color:var(--muted);font-weight:700;margin-top:3px;letter-spacing:.5px;}
+.limit-row{display:flex;align-items:center;gap:10px;padding:0 14px;margin-bottom:8px;}
+.limit-label{font-size:12px;font-weight:700;flex:1;}
+.limit-input{width:60px;background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:8px;color:var(--text);font-family:'DM Mono',monospace;font-size:13px;text-align:center;outline:none;}
+.limit-unit{font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;}
+
+/* SYNC SECTION */
+.sync-box{margin:0 14px;background:linear-gradient(135deg,#150a2a,#0d0a1f);border:1px solid #a855f733;border-radius:14px;padding:16px;}
+.sync-title{font-size:10px;font-weight:800;color:var(--accent);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;}
+.sync-status{font-size:11px;color:var(--muted);margin-bottom:10px;line-height:1.5;font-family:'DM Mono',monospace;}
+.sync-btn{width:100%;padding:11px;border:none;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--pink));color:#fff;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:800;cursor:pointer;margin-bottom:8px;}
+.sync-input{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px;color:var(--text);font-family:'DM Mono',monospace;font-size:13px;letter-spacing:2px;outline:none;margin-bottom:8px;text-transform:uppercase;}
+.sync-input::placeholder{color:var(--muted);text-transform:none;letter-spacing:0;font-size:11px;}
+.sync-connect{width:100%;padding:10px;border:1px solid var(--accent);border-radius:10px;background:transparent;color:var(--accent);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:800;cursor:pointer;}
+
+/* PRO MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:#000000cc;z-index:200;align-items:flex-end;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:24px 24px 0 0;padding:24px 20px;width:100%;padding-bottom:calc(24px + var(--safe-bottom));animation:up .3s ease;}
+@keyframes up{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-handle{width:40px;height:4px;background:var(--border);border-radius:4px;margin:0 auto 18px;}
+.modal-title{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;text-align:center;background:linear-gradient(90deg,var(--accent),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:6px;}
+.modal-sub{text-align:center;font-size:12px;color:var(--muted);margin-bottom:20px;}
+.plan-row{display:flex;gap:10px;margin-bottom:14px;}
+.plan-opt{flex:1;background:var(--card2);border:2px solid var(--border);border-radius:14px;padding:14px 10px;text-align:center;cursor:pointer;transition:all .2s;}
+.plan-opt.sel{border-color:var(--accent);background:#a855f710;}
+.plan-name{font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase;margin-bottom:6px;}
+.plan-price{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;color:var(--gold);}
+.plan-per{font-size:10px;color:var(--muted);margin-top:2px;}
+.plan-save{font-size:10px;color:var(--green);font-weight:800;margin-top:4px;}
+.modal-cta{display:block;width:100%;padding:15px;border-radius:14px;border:none;background:linear-gradient(135deg,var(--accent),var(--pink));color:#fff;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:800;cursor:pointer;text-decoration:none;text-align:center;margin-bottom:10px;}
+.modal-skip{display:block;text-align:center;font-size:12px;color:var(--muted);cursor:pointer;padding:8px;}
+
+/* TOAST */
+.toast{position:fixed;bottom:calc(70px + var(--safe-bottom));left:14px;right:14px;background:rgba(0,0,0,.9);border:1px solid var(--accent);border-radius:10px;padding:10px 16px;font-size:12px;font-weight:600;color:var(--accent);z-index:300;opacity:0;transition:opacity .3s;pointer-events:none;text-align:center;font-family:'DM Mono',monospace;}
+.toast.show{opacity:1;}
+
+/* BOTTOM NAV */
+.bottom-nav{display:flex;border-top:1px solid var(--border);background:var(--card);flex-shrink:0;padding-bottom:var(--safe-bottom);}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 4px;gap:3px;background:none;border:none;color:var(--muted);cursor:pointer;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.3px;transition:color .2s;}
+.nav-btn.active{color:var(--accent);}
+.nav-btn span:first-child{font-size:20px;}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="header">
+    <div class="logo">
+      <div class="logo-icon">⚡</div>
+      <div>
+        <div class="logo-text">Brain Spark</div>
+      </div>
+    </div>
+    <div class="pro-badge" id="proBadge" onclick="openModal()">FREE</div>
+  </div>
+
+  <div class="streak-bar">
+    <div class="streak-row">
+      <div class="streak-label">⚡ FOCUS STREAK</div>
+      <div class="streak-val" id="streakVal">0 min</div>
+    </div>
+    <div class="streak-track">
+      <div class="streak-fill" id="streakFill" style="width:0%"></div>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('focusView', this)">⚡ Focus</div>
+    <div class="tab" onclick="switchTab('gamesView', this)">🎮 Games</div>
+    <div class="tab" onclick="switchTab('parentView', this)">👨‍👧 Parent</div>
+    <div class="tab" onclick="switchTab('settingsView', this)">⚙️ Sync</div>
+  </div>
+
+  <div class="content">
+
+    <!-- FOCUS VIEW -->
+    <div class="view active" id="focusView">
+      <div class="sec-label">Free Features</div>
+      <div class="feat-list">
+        <div class="feat-row">
+          <div class="feat-icon">🔤</div>
+          <div class="feat-info">
+            <div class="feat-name">Chunk Text</div>
+            <div class="feat-desc">Breaks walls of text into 2-sentence bites</div>
+          </div>
+          <label class="toggle"><input type="checkbox" id="tog-chunk" onchange="saveFeature('chunk',this.checked)"><span class="toggle-slider"></span></label>
+        </div>
+        <div class="feat-row">
+          <div class="feat-icon">✨</div>
+          <div class="feat-info">
+            <div class="feat-name">Focus Glow</div>
+            <div class="feat-desc">Highlights the paragraph you're reading</div>
+          </div>
+          <label class="toggle"><input type="checkbox" id="tog-glow" onchange="saveFeature('glow',this.checked)"><span class="toggle-slider"></span></label>
+        </div>
+        <div class="feat-row" id="row-ruler" onclick="!isPro&&openModal()">
+          <div class="feat-icon">📏</div>
+          <div class="feat-info">
+            <div class="feat-name">Reading Ruler</div>
+            <div class="feat-desc">Line follows your cursor across the page</div>
+          </div>
+          <span class="feat-lock" id="ruler-lock">🔒 Pro</span>
+          <label class="toggle" id="tog-ruler-wrap" style="display:none"><input type="checkbox" id="tog-ruler" onchange="saveFeature('ruler',this.checked)"><span class="toggle-slider"></span></label>
+        </div>
+        <div class="feat-row" id="row-tts" onclick="!isPro&&openModal()">
+          <div class="feat-icon">🔊</div>
+          <div class="feat-info">
+            <div class="feat-name">Text to Speech</div>
+            <div class="feat-desc">Reads the page out loud for you</div>
+          </div>
+          <span class="feat-lock" id="tts-lock">🔒 Pro</span>
+          <label class="toggle" id="tog-tts-wrap" style="display:none"><input type="checkbox" id="tog-tts" onchange="saveFeature('tts',this.checked)"><span class="toggle-slider"></span></label>
+        </div>
+      </div>
+
+      <div class="sec-label" style="margin-top:8px">Color Overlay</div>
+      <div class="swatches">
+        <div class="swatch active" data-overlay="none" style="background:var(--card2)" onclick="setOverlay('none',this)">OFF</div>
+        <div class="swatch" data-overlay="warm" style="background:#ff990040" onclick="setOverlay('warm',this)">🌅</div>
+        <div class="swatch" data-overlay="cool" style="background:#0099ff30" onclick="setOverlay('cool',this)">❄️</div>
+        <div class="swatch" data-overlay="dark" style="background:#00000060" onclick="setOverlay('dark',this)">🌑</div>
+        <div class="swatch" data-overlay="pink" style="background:#ff66aa30" onclick="setOverlay('pink',this)">🌸</div>
+      </div>
+    </div>
+
+    <!-- GAMES VIEW -->
+    <div class="view" id="gamesView">
+      <div class="sec-label">Focus Mini-Games</div>
+      <div class="games-grid">
+        <div class="game-card" onclick="launchGame('breathe')">
+          <div class="game-emoji">🫁</div>
+          <div class="game-name">Box Breathing</div>
+          <div class="game-desc">Calm your brain in 2 minutes</div>
+        </div>
+        <div class="game-card" id="memCard" onclick="isPro ? launchGame('memory') : openModal()">
+          <div class="game-emoji">🧠</div>
+          <div class="game-name">Memory Match</div>
+          <div class="game-desc">Train your working memory</div>
+          <div class="game-lock" id="memLock">🔒</div>
+        </div>
+      </div>
+
+      <!-- BREATHE GAME -->
+      <div class="game-view" id="breatheGame">
+        <div class="game-hdr">
+          <button class="back-btn" onclick="stopGame()">← Back</button>
+          <div class="game-title">🫁 Box Breathing</div>
+        </div>
+        <div class="breathe-container">
+          <div class="breathe-circle" id="breatheCircle">Breathe In</div>
+          <div class="breathe-count" id="breatheCount">4</div>
+          <div class="breathe-phase" id="breathePhase">GET READY</div>
+        </div>
+      </div>
+
+      <!-- MEMORY GAME -->
+      <div class="game-view" id="memoryGame">
+        <div class="game-hdr">
+          <button class="back-btn" onclick="stopGame()">← Back</button>
+          <div class="game-title">🧠 Memory Match</div>
+        </div>
+        <div class="memory-score" id="memScore">Pairs: 0/8 · Moves: 0</div>
+        <div class="memory-grid" id="memGrid"></div>
+      </div>
+    </div>
+
+    <!-- PARENT VIEW -->
+    <div class="view" id="parentView">
+      <div class="sec-label">Weekly Stats</div>
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-val" id="statStreak">0</div>
+          <div class="stat-lbl">DAY STREAK</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val" id="statGames">0</div>
+          <div class="stat-lbl">GAMES PLAYED</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val" id="statFocus">0</div>
+          <div class="stat-lbl">FOCUS MINS</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val" id="statDays">0</div>
+          <div class="stat-lbl">ACTIVE DAYS</div>
+        </div>
+      </div>
+
+      <div class="sec-label" style="margin-top:8px">Time Limits</div>
+      <div class="limit-row">
+        <div class="limit-label">Browse limit</div>
+        <input class="limit-input" id="limitBrowse" type="number" min="5" max="480" placeholder="60" onchange="saveLimit('limitBrowse',this.value)"/>
+        <div class="limit-unit">min/day</div>
+      </div>
+      <div class="limit-row">
+        <div class="limit-label">Game limit</div>
+        <input class="limit-input" id="limitGames" type="number" min="5" max="120" placeholder="30" onchange="saveLimit('limitGames',this.value)"/>
+        <div class="limit-unit">min/day</div>
+      </div>
+    </div>
+
+    <!-- SETTINGS/SYNC VIEW -->
+    <div class="view" id="settingsView">
+      <div class="sec-label">Cross-Device Sync</div>
+      <div class="sync-box">
+        <div class="sync-title">☁️ Sync with Extension</div>
+        <div class="sync-status" id="syncStatus">Not synced — enable to use on all devices</div>
+        <button class="sync-btn" onclick="pushSync()">☁️ Enable Sync — Get My Code</button>
+        <input class="sync-input" id="syncCodeInput" placeholder="Enter code from extension" type="text"/>
+        <button class="sync-connect" onclick="connectSync()">🔗 Connect to Extension</button>
+      </div>
+
+      <div class="sec-label" style="margin-top:8px">License Key</div>
+      <div style="padding:0 14px">
+        <input id="licInput" placeholder="Enter license key" style="width:100%;background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:11px 14px;color:var(--text);font-family:'DM Mono',monospace;font-size:13px;outline:none;margin-bottom:8px;" type="text"/>
+        <button onclick="activateLicense()" style="width:100%;padding:11px;border:none;border-radius:10px;background:var(--accent);color:#fff;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:800;cursor:pointer;">Activate License</button>
+      </div>
+    </div>
+
+  </div>
+
+  <nav class="bottom-nav">
+    <button class="nav-btn active" id="nav-focus" onclick="switchTab('focusView',this)"><span>⚡</span><span>Focus</span></button>
+    <button class="nav-btn" id="nav-games" onclick="switchTab('gamesView',this)"><span>🎮</span><span>Games</span></button>
+    <button class="nav-btn" id="nav-parent" onclick="switchTab('parentView',this)"><span>👨‍👧</span><span>Parent</span></button>
+    <button class="nav-btn" id="nav-settings" onclick="switchTab('settingsView',this)"><span>⚙️</span><span>Sync</span></button>
+  </nav>
+</div>
+
+<!-- PRO MODAL -->
+<div class="modal-overlay" id="proModal" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Brain Spark Pro</div>
+    <div class="modal-sub">Unlock the full focus toolkit</div>
+    <div class="plan-row">
+      <div class="plan-opt" id="planMonthly" onclick="selectPlan('monthly')">
+        <div class="plan-name">Monthly</div>
+        <div class="plan-price">$2.99</div>
+        <div class="plan-per">per month</div>
+      </div>
+      <div class="plan-opt sel" id="planYearly" onclick="selectPlan('yearly')">
+        <div class="plan-name">Yearly 🔥</div>
+        <div class="plan-price">$17.99</div>
+        <div class="plan-per">per year</div>
+        <div class="plan-save">Save 50%</div>
+      </div>
+    </div>
+    <a href="https://buy.stripe.com/4gM7sKfJh60nfutcWre7m01" class="modal-cta" id="modalCta" target="_blank">💳 Start Pro — $17.99/yr</a>
+    <span class="modal-skip" onclick="closeModal()">No thanks, keep free version</span>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── STRIPE ────────────────────────────────────────────────────────
+const STRIPE = {
+  monthly: 'https://buy.stripe.com/5kQ14mgNlgF1aa909Fe7m00',
+  yearly: 'https://buy.stripe.com/4gM7sKfJh60nfutcWre7m01'
+};
+
+// ── STORAGE ───────────────────────────────────────────────────────
+const S = {
+  get: (k, fb) => { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : fb; } catch { return fb; } },
+  set: (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
+};
+
+// ── STATE ─────────────────────────────────────────────────────────
+let isPro = S.get('bs_isPro', false);
+let streakMin = S.get('bs_streakMin', 0);
+let features = S.get('bs_features', { chunk: true, glow: true, ruler: false, tts: false });
+let overlay = S.get('bs_overlay', 'none');
+let activeGame = null;
+let breatheInterval = null;
+let selectedPlan = 'yearly';
+let syncBinId = S.get('bs_syncBinId', null);
+
+// ── INIT ──────────────────────────────────────────────────────────
+function init() {
+  updateProUI();
+  updateStreakUI();
+  loadFeatureToggles();
+  loadStats();
+  restoreOverlay();
+  if (syncBinId) {
+    document.getElementById('syncStatus').textContent = 'Synced · Code: ' + syncBinId.slice(-6).toUpperCase();
+    setTimeout(() => pullSync(syncBinId), 800);
+  }
+  // Track focus time every minute
+  setInterval(() => {
+    streakMin++;
+    S.set('bs_streakMin', streakMin);
+    updateStreakUI();
+    // Update weekly stats
+    const stats = S.get('bs_weeklyStats', {});
+    const today = new Date().toDateString();
+    stats[today] = (stats[today] || 0) + 1;
+    S.set('bs_weeklyStats', stats);
+  }, 60000);
+}
+
+function updateProUI() {
+  const badge = document.getElementById('proBadge');
+  badge.textContent = isPro ? '⚡ PRO' : 'FREE';
+  badge.className = 'pro-badge' + (isPro ? ' active' : '');
+  if (isPro) {
+    document.getElementById('ruler-lock').style.display = 'none';
+    document.getElementById('tog-ruler-wrap').style.display = 'block';
+    document.getElementById('tts-lock').style.display = 'none';
+    document.getElementById('tog-tts-wrap').style.display = 'block';
+    document.getElementById('memLock').style.display = 'none';
+    document.getElementById('memCard').classList.remove('locked');
+  }
+}
+
+function updateStreakUI() {
+  document.getElementById('streakVal').textContent = streakMin + ' min';
+  document.getElementById('streakFill').style.width = Math.min(100, (streakMin / 30) * 100) + '%';
+}
+
+function loadFeatureToggles() {
+  document.getElementById('tog-chunk').checked = features.chunk ?? true;
+  document.getElementById('tog-glow').checked = features.glow ?? true;
+  document.getElementById('tog-ruler').checked = features.ruler ?? false;
+  document.getElementById('tog-tts').checked = features.tts ?? false;
+}
+
+function saveFeature(key, val) {
+  features[key] = val;
+  S.set('bs_features', features);
+  setTimeout(pushSync, 500);
+}
+
+function setOverlay(val, el) {
+  overlay = val;
+  S.set('bs_overlay', val);
+  document.querySelectorAll('.swatch').forEach(s => s.classList.toggle('active', s.dataset.overlay === val));
+  setTimeout(pushSync, 500);
+}
+
+function restoreOverlay() {
+  document.querySelectorAll('.swatch').forEach(s => s.classList.toggle('active', s.dataset.overlay === overlay));
+}
+
+function loadStats() {
+  const stats = S.get('bs_weeklyStats', {});
+  const gamesPlayed = S.get('bs_gamesPlayed', {});
+  const days = Object.keys(stats).length;
+  const totalFocus = Object.values(stats).reduce((a,b) => a+b, 0);
+  const totalGames = Object.values(gamesPlayed).reduce((a,b) => a+b, 0);
+  document.getElementById('statStreak').textContent = days;
+  document.getElementById('statGames').textContent = totalGames;
+  document.getElementById('statFocus').textContent = totalFocus;
+  document.getElementById('statDays').textContent = days;
+  const lb = S.get('bs_limitBrowse', null);
+  const lg = S.get('bs_limitGames', null);
+  if (lb) document.getElementById('limitBrowse').value = lb;
+  if (lg) document.getElementById('limitGames').value = lg;
+}
+
+function saveLimit(key, val) {
+  S.set('bs_' + key, val);
+}
+
+// ── TABS ──────────────────────────────────────────────────────────
+function switchTab(viewId, el) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.tab, .nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(viewId).classList.add('active');
+  if (el) el.classList.add('active');
+  // Also activate matching nav btn
+  const map = { focusView:'nav-focus', gamesView:'nav-games', parentView:'nav-parent', settingsView:'nav-settings' };
+  const btn = document.getElementById(map[viewId]);
+  if (btn) btn.classList.add('active');
+  // Stop any active game when switching away
+  if (viewId !== 'gamesView') stopGame();
+}
+
+// ── GAMES ─────────────────────────────────────────────────────────
+function launchGame(game) {
+  activeGame = game;
+  document.getElementById('games-grid') && (document.querySelector('.games-grid').style.display = 'none');
+  document.querySelectorAll('.game-view').forEach(v => v.classList.remove('active'));
+  if (game === 'breathe') {
+    document.querySelector('.games-grid').style.display = 'none';
+    document.getElementById('breatheGame').classList.add('active');
+    startBreathe();
+  } else if (game === 'memory') {
+    document.querySelector('.games-grid').style.display = 'none';
+    document.getElementById('memoryGame').classList.add('active');
+    startMemory();
+  }
+  // Log game played
+  const gp = S.get('bs_gamesPlayed', {});
+  gp[game] = (gp[game] || 0) + 1;
+  S.set('bs_gamesPlayed', gp);
+}
+
+function stopGame() {
+  activeGame = null;
+  if (breatheInterval) { clearInterval(breatheInterval); breatheInterval = null; }
+  document.querySelectorAll('.game-view').forEach(v => v.classList.remove('active'));
+  document.querySelector('.games-grid').style.display = 'grid';
+}
+
+// BOX BREATHING
+function startBreathe() {
+  const phases = [
+    { label: 'Breathe In', dur: 4, scale: 1.3 },
+    { label: 'Hold', dur: 4, scale: 1.3 },
+    { label: 'Breathe Out', dur: 4, scale: 1.0 },
+    { label: 'Hold', dur: 4, scale: 1.0 }
+  ];
+  let phaseIdx = 0;
+  let count = phases[0].dur;
+  const circle = document.getElementById('breatheCircle');
+  const countEl = document.getElementById('breatheCount');
+  const phaseEl = document.getElementById('breathePhase');
+
+  circle.textContent = phases[0].label;
+  countEl.textContent = count;
+  circle.style.transform = 'scale(1)';
+
+  breatheInterval = setInterval(() => {
+    if (activeGame !== 'breathe') { clearInterval(breatheInterval); return; }
+    count--;
+    countEl.textContent = count;
+    if (count <= 0) {
+      phaseIdx = (phaseIdx + 1) % phases.length;
+      const phase = phases[phaseIdx];
+      count = phase.dur;
+      circle.textContent = phase.label;
+      circle.style.transform = `scale(${phase.scale})`;
+      phaseEl.textContent = `ROUND ${Math.floor(phaseIdx / 4) + 1}`;
+    }
+  }, 1000);
+}
+
+// MEMORY MATCH
+function startMemory() {
+  const emojis = ['⚡','🧠','🎯','🔥','💜','🌊','🎮','✨'];
+  const cards = [...emojis, ...emojis].sort(() => Math.random() - .5);
+  let flipped = [], matched = [], moves = 0, lock = false;
+
+  const grid = document.getElementById('memGrid');
+  grid.innerHTML = '';
+
+  cards.forEach((emoji, i) => {
+    const card = document.createElement('div');
+    card.className = 'mem-card';
+    card.dataset.idx = i;
+    card.dataset.emoji = emoji;
+    card.textContent = '?';
+    card.addEventListener('click', () => {
+      if (lock || card.classList.contains('matched') || card.classList.contains('flipped')) return;
+      card.textContent = emoji;
+      card.classList.add('flipped');
+      flipped.push(card);
+      if (flipped.length === 2) {
+        moves++;
+        lock = true;
+        const [a, b] = flipped;
+        if (a.dataset.emoji === b.dataset.emoji) {
+          a.classList.add('matched'); b.classList.add('matched');
+          matched.push(a, b);
+          flipped = []; lock = false;
+          if (matched.length === cards.length) {
+            setTimeout(() => showToast('🎉 Completed in ' + moves + ' moves!'), 300);
+          }
+        } else {
+          setTimeout(() => {
+            a.textContent = '?'; b.textContent = '?';
+            a.classList.remove('flipped'); b.classList.remove('flipped');
+            flipped = []; lock = false;
+          }, 800);
+        }
+        document.getElementById('memScore').textContent = `Pairs: ${matched.length/2}/8 · Moves: ${moves}`;
+      }
+    });
+    grid.appendChild(card);
+  });
+}
+
+// ── MODAL ─────────────────────────────────────────────────────────
+function openModal() { document.getElementById('proModal').classList.add('open'); }
+function closeModal() { document.getElementById('proModal').classList.remove('open'); }
+function selectPlan(plan) {
+  selectedPlan = plan;
+  document.getElementById('planMonthly').classList.toggle('sel', plan === 'monthly');
+  document.getElementById('planYearly').classList.toggle('sel', plan === 'yearly');
+  const cta = document.getElementById('modalCta');
+  cta.href = plan === 'monthly' ? STRIPE.monthly : STRIPE.yearly;
+  cta.textContent = plan === 'monthly' ? '💳 Start Pro — $2.99/mo' : '💳 Start Pro — $17.99/yr';
+}
+
+// ── LICENSE ───────────────────────────────────────────────────────
+function activateLicense() {
+  const key = document.getElementById('licInput').value.trim().toUpperCase();
+  const valid = ['BLXCK-','ADHD-','FORME-','SPARK-'].some(p => key.startsWith(p)) && key.length >= 12;
+  if (!valid) { showToast('❌ Invalid key'); window.open(STRIPE.monthly, '_blank'); return; }
+  isPro = true;
+  S.set('bs_isPro', true);
+  S.set('bs_licenseKey', key);
+  updateProUI();
+  closeModal();
+  showToast('✨ Pro unlocked!');
+}
+
+// ── SYNC ──────────────────────────────────────────────────────────
+const JSONBIN = 'https://api.jsonbin.io/v3/b';
+
+function getSyncPayload() {
+  return { features, overlay, streakMin, limitBrowse: S.get('bs_limitBrowse', null), limitGames: S.get('bs_limitGames', null), weeklyStats: S.get('bs_weeklyStats', {}), gamesPlayed: S.get('bs_gamesPlayed', {}), lastSync: Date.now() };
+}
+
+async function pushSync() {
+  const payload = getSyncPayload();
+  try {
+    if (!syncBinId) {
+      const res = await fetch(JSONBIN, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Bin-Private': 'false' }, body: JSON.stringify(payload) });
+      const json = await res.json();
+      if (json.metadata?.id) {
+        syncBinId = json.metadata.id;
+        S.set('bs_syncBinId', syncBinId);
+        const code = syncBinId.slice(-6).toUpperCase();
+        document.getElementById('syncStatus').textContent = '✓ Synced · Your code: ' + code;
+        showToast('☁️ Sync enabled! Code: ' + code);
+      }
+    } else {
+      await fetch(`${JSONBIN}/${syncBinId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      document.getElementById('syncStatus').textContent = '✓ Synced · Code: ' + syncBinId.slice(-6).toUpperCase();
+      showToast('☁️ Synced!');
+    }
+  } catch(e) { showToast('Sync failed — check connection'); }
+}
+
+async function pullSync(binId) {
+  try {
+    const res = await fetch(`${JSONBIN}/${binId}/latest`);
+    const json = await res.json();
+    const d = json.record;
+    if (!d) return;
+    if (d.features) { features = d.features; S.set('bs_features', features); loadFeatureToggles(); }
+    if (d.overlay) { overlay = d.overlay; S.set('bs_overlay', overlay); restoreOverlay(); }
+    if (d.streakMin) { streakMin = d.streakMin; S.set('bs_streakMin', streakMin); updateStreakUI(); }
+    if (d.weeklyStats) S.set('bs_weeklyStats', d.weeklyStats);
+    if (d.gamesPlayed) S.set('bs_gamesPlayed', d.gamesPlayed);
+    loadStats();
+  } catch(e) {}
+}
+
+async function connectSync() {
+  const input = document.getElementById('syncCodeInput').value.trim();
+  if (!input) { showToast('Enter your code'); return; }
+  showToast('Connecting...');
+  // Try to find bin by last 6 chars — user enters code shown in extension
+  // The code IS the bin ID stored in the extension
+  const success = await new Promise(async resolve => {
+    try {
+      await pullSync(input);
+      syncBinId = input;
+      S.set('bs_syncBinId', input);
+      resolve(true);
+    } catch(e) { resolve(false); }
+  });
+  if (success) {
+    document.getElementById('syncStatus').textContent = '✓ Connected · Code: ' + input.slice(-6).toUpperCase();
+    showToast('✓ Synced from extension!');
+  } else {
+    showToast('Code not found. Check and try again.');
+  }
+}
+
+// ── TOAST ─────────────────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ── START ─────────────────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>

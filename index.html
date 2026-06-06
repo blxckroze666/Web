@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="theme-color" content="#0d0a1a"/>
+  <title>Spark Extensions — ADHD Chrome Tools</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg: #0d0a1a; --card: #13101f; --card2: #1a1628;
+      --border: #2a2444; --purple: #a855f7; --pink: #ec4899;
+      --green: #4ade80; --gold: #fbbf24; --cyan: #22d3ee;
+      --yellow: #e8ff47; --orange: #ff6b35;
+      --text: #f0eeff; --muted: #7c6fa0;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Nunito', sans-serif; background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+
+    nav { display:flex; align-items:center; padding:16px 24px; border-bottom:1px solid var(--border); background:#0d0a1af0; backdrop-filter:blur(20px); position:sticky; top:0; z-index:100; }
+    .nav-logo { display:flex; align-items:center; gap:10px; text-decoration:none; }
+    .nav-icon { width:36px; height:36px; border-radius:10px; background:linear-gradient(135deg,var(--purple),var(--pink)); display:flex; align-items:center; justify-content:center; font-size:18px; }
+    .nav-brand { font-family:'Syne',sans-serif; font-size:18px; font-weight:800; background:linear-gradient(90deg,var(--purple),var(--pink)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+
+    .hero { padding:70px 24px 50px; text-align:center; position:relative; overflow:hidden; }
+    .hero::before { content:''; position:absolute; top:-80px; left:50%; transform:translateX(-50%); width:500px; height:500px; background:radial-gradient(ellipse,#a855f718 0%,transparent 70%); pointer-events:none; }
+    .hero-tag { display:inline-flex; align-items:center; gap:7px; background:#a855f715; border:1px solid #a855f733; border-radius:20px; padding:6px 16px; font-size:11px; font-weight:800; color:var(--purple); letter-spacing:1.5px; text-transform:uppercase; margin-bottom:28px; }
+    .hero h1 { font-family:'Syne',sans-serif; font-size:48px; font-weight:800; line-height:1.05; margin-bottom:20px; }
+    .hero h1 .line2 { color:var(--gold); }
+    .hero h1 .line3 { color:var(--pink); }
+    .hero-sub { font-size:16px; color:var(--muted); line-height:1.7; max-width:380px; margin:0 auto 36px; }
+    .hero-sub strong { color:var(--text); }
+    .btn-grad { display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:16px 28px; border-radius:14px; border:none; background:linear-gradient(135deg,var(--purple),var(--pink)); color:#fff; font-family:'Nunito',sans-serif; font-size:16px; font-weight:800; cursor:pointer; text-decoration:none; width:100%; margin-bottom:12px; box-shadow:0 8px 32px #a855f744; transition:all .2s; }
+    .btn-grad:hover { transform:translateY(-2px); }
+    .btn-outline { display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:14px 28px; border-radius:14px; border:1px solid var(--border); background:var(--card2); color:var(--text); font-family:'Nunito',sans-serif; font-size:15px; font-weight:800; cursor:pointer; text-decoration:none; width:100%; transition:all .2s; }
+    .btn-outline:hover { border-color:var(--purple); }
+
+    .stats { display:flex; border-top:1px solid var(--border); border-bottom:1px solid var(--border); }
+    .stat { flex:1; text-align:center; padding:22px 8px; border-right:1px solid var(--border); }
+    .stat:last-child { border-right:none; }
+    .stat-val { font-family:'Syne',sans-serif; font-size:28px; font-weight:800; color:var(--text); }
+    .stat-lbl { font-size:10px; color:var(--muted); font-weight:700; margin-top:3px; }
+
+    .sec-hdr { padding:44px 24px 0; }
+    .sec-label { font-size:11px; font-weight:800; letter-spacing:2px; text-transform:uppercase; color:var(--purple); margin-bottom:8px; }
+    .sec-hdr h2 { font-family:'Syne',sans-serif; font-size:32px; font-weight:800; line-height:1.15; margin-bottom:10px; }
+    .sec-hdr p { font-size:14px; color:var(--muted); line-height:1.6; }
+
+    .ext-list { padding:24px 24px 0; display:flex; flex-direction:column; gap:16px; }
+    .ext-card { background:var(--card); border:1px solid var(--border); border-radius:20px; padding:24px; position:relative; overflow:hidden; }
+    .ext-card.homespark { border-color:#4ade8044; background:linear-gradient(135deg,#0a1a0a,#13101f); }
+    .ext-card.brainspark { border-color:#a855f744; background:linear-gradient(135deg,#150a1f,#13101f); }
+    .ext-card.hunt { border-color:#e8ff4744; background:linear-gradient(135deg,#1a1a00,#13101f); }
+    .ext-card.tubesync { border-color:#22d3ee44; background:linear-gradient(135deg,#001a20,#13101f); }
+    .ext-card.tradesync { border-color:#00ff8844; background:linear-gradient(135deg,#001a0d,#13101f); }
+    .ext-icon.tr { background:linear-gradient(135deg,#001a0d,#13101f); border-color:#00ff8833; }
+    .ext-card.tabmelt { border-color:#f9731644; background:linear-gradient(135deg,#1a0d00,#13101f); }
+    .ext-card.auramood { border-color:#22d3ee44; background:linear-gradient(135deg,#001a1f,#0d0a1a,#150a1f); }
+    .ext-icon.am { background:linear-gradient(135deg,#001a20,#1a0a2a); border-color:#22d3ee44; }
+    .modal-cta.aura { background:linear-gradient(135deg,#22d3ee,#a855f7); color:#fff; }
+    .ext-card.coming { border-color:#a855f744; background:linear-gradient(135deg,#150a1f,#13101f); }
+
+    .status-badge { display:inline-flex; align-items:center; gap:5px; border-radius:20px; padding:4px 12px; font-size:10px; font-weight:800; letter-spacing:.5px; text-transform:uppercase; margin-bottom:16px; }
+    .status-badge .dot { width:6px; height:6px; border-radius:50%; }
+    .live { background:#4ade8015; border:1px solid #4ade8044; color:var(--green); }
+    .live .dot { background:var(--green); animation:blink 1.5s infinite; }
+    .soon { background:#f9731615; border:1px solid #f9731644; color:#f97316; }
+    .soon .dot { background:#f97316; }
+    .dev { background:#fbbf2415; border:1px solid #fbbf2444; color:var(--gold); }
+    .dev .dot { background:var(--gold); }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+    .ext-icon { width:64px; height:64px; border-radius:18px; display:flex; align-items:center; justify-content:center; font-size:34px; margin-bottom:16px; border:1px solid var(--border); }
+    .ext-icon.hs { background:linear-gradient(135deg,#1a2a1a,#13101f); border-color:#4ade8033; }
+    .ext-icon.bs { background:linear-gradient(135deg,#1a0a2a,#13101f); border-color:#a855f733; }
+    .ext-icon.ht { background:linear-gradient(135deg,#1a1a00,#13101f); border-color:#e8ff4733; }
+    .ext-icon.ts { background:linear-gradient(135deg,#001a20,#13101f); border-color:#22d3ee33; }
+    .ext-icon.tm { background:linear-gradient(135deg,#2a1000,#13101f); border-color:#f9731633; }
+    .ext-icon.mc { background:linear-gradient(135deg,#150a1f,#13101f); border-color:#a855f733; }
+
+    .ext-name { font-family:'Syne',sans-serif; font-size:24px; font-weight:800; margin-bottom:10px; }
+    .ext-desc { font-size:14px; color:var(--muted); line-height:1.65; margin-bottom:16px; }
+    .feat-list { list-style:none; display:flex; flex-direction:column; gap:7px; margin-bottom:20px; }
+    .feat-list li { font-size:13px; color:var(--muted); display:flex; gap:8px; align-items:flex-start; }
+    .feat-list li::before { content:'→'; color:var(--purple); flex-shrink:0; font-weight:800; }
+    .ext-price { font-size:15px; font-weight:800; margin-bottom:14px; }
+    .ext-price .free { color:var(--green); font-size:22px; }
+    .ext-price .from { color:var(--muted); font-size:13px; }
+    .ext-price .amount { color:var(--gold); }
+    .ext-price .tba { color:var(--cyan); font-size:20px; }
+    .ext-btns { display:flex; gap:10px; flex-wrap:wrap; }
+
+    .btn-primary { flex:1; padding:13px 16px; border-radius:12px; border:none; background:linear-gradient(135deg,var(--purple),var(--pink)); color:#fff; font-family:'Nunito',sans-serif; font-size:14px; font-weight:800; cursor:pointer; text-decoration:none; text-align:center; transition:all .2s; box-shadow:0 4px 20px #a855f744; }
+    .btn-primary:hover { transform:translateY(-2px); }
+    .btn-green { flex:1; padding:13px 16px; border-radius:12px; border:none; background:linear-gradient(135deg,#4ade80,#22c55e); color:#052e16; font-family:'Nunito',sans-serif; font-size:14px; font-weight:800; cursor:pointer; text-decoration:none; text-align:center; transition:all .2s; box-shadow:0 4px 20px #4ade8044; }
+    .btn-green:hover { transform:translateY(-2px); }
+    .btn-yellow { flex:1; padding:13px 16px; border-radius:12px; border:none; background:linear-gradient(135deg,#e8ff47,#fbbf24); color:#000; font-family:'Nunito',sans-serif; font-size:14px; font-weight:800; cursor:pointer; text-decoration:none; text-align:center; transition:all .2s; box-shadow:0 4px 20px #e8ff4744; }
+    .btn-yellow:hover { transform:translateY(-2px); }
+    .btn-cyan { flex:1; padding:13px 16px; border-radius:12px; border:none; background:linear-gradient(135deg,#22d3ee,#0891b2); color:#001a20; font-family:'Nunito',sans-serif; font-size:14px; font-weight:800; cursor:pointer; text-decoration:none; text-align:center; transition:all .2s; box-shadow:0 4px 20px #22d3ee44; }
+    .btn-cyan:hover { transform:translateY(-2px); }
+    .btn-gold { flex:1; padding:13px 16px; border-radius:12px; border:none; background:linear-gradient(135deg,#fbbf24,#f59e0b); color:#1a0a00; font-family:'Nunito',sans-serif; font-size:14px; font-weight:800; cursor:pointer; text-decoration:none; text-align:center; transition:all .2s; }
+    .btn-gold:hover { transform:translateY(-2px); }
+    .btn-dark { flex:1; padding:13px 16px; border-radius:12px; border:1px solid var(--border); background:var(--card2); color:var(--text); font-family:'Nunito',sans-serif; font-size:14px; font-weight:800; cursor:pointer; text-decoration:none; text-align:center; transition:all .2s; }
+    .btn-dark:hover { border-color:var(--purple); }
+    .btn-notify { width:100%; padding:13px; border-radius:12px; border:1px solid var(--border); background:var(--card2); color:var(--muted); font-family:'Nunito',sans-serif; font-size:14px; font-weight:800; cursor:pointer; text-align:center; transition:all .2s; }
+    .btn-notify:hover { border-color:var(--purple); color:var(--text); }
+
+    .why { padding:50px 24px; border-top:1px solid var(--border); }
+    .why-label { font-size:11px; font-weight:800; letter-spacing:2px; text-transform:uppercase; color:var(--purple); margin-bottom:10px; }
+    .why h2 { font-family:'Syne',sans-serif; font-size:34px; font-weight:800; line-height:1.15; margin-bottom:24px; }
+    .why-grid { display:flex; flex-direction:column; gap:12px; }
+    .why-item { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:18px; display:flex; gap:14px; align-items:flex-start; }
+    .why-icon { width:44px; height:44px; border-radius:12px; background:var(--card2); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0; }
+    .why-info h3 { font-size:15px; font-weight:800; margin-bottom:4px; }
+    .why-info p { font-size:13px; color:var(--muted); line-height:1.5; }
+
+    footer { border-top:1px solid var(--border); padding:32px 24px; text-align:center; }
+    .footer-logo { font-family:'Syne',sans-serif; font-size:18px; font-weight:800; background:linear-gradient(90deg,var(--purple),var(--pink)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin-bottom:16px; }
+    .footer-links { display:flex; justify-content:center; gap:20px; flex-wrap:wrap; margin-bottom:16px; }
+    .footer-links a { font-size:13px; color:var(--muted); text-decoration:none; }
+    .footer-links a:hover { color:var(--purple); }
+    footer p { font-size:11px; color:var(--muted); }
+
+    .modal-bg { display:none; position:fixed; inset:0; background:#000000cc; z-index:200; align-items:flex-end; justify-content:center; }
+    .modal-bg.open { display:flex; }
+    .modal { background:var(--card); border:1px solid var(--border); border-radius:24px 24px 0 0; padding:28px 24px 40px; width:100%; max-width:480px; animation:up .3s ease; }
+    @keyframes up { from{transform:translateY(100%)} to{transform:translateY(0)} }
+    .modal-handle { width:40px; height:4px; background:var(--border); border-radius:4px; margin:0 auto 22px; }
+    .modal-title { font-family:'Syne',sans-serif; font-size:26px; font-weight:800; text-align:center; margin-bottom:6px; }
+    .modal-sub { text-align:center; font-size:13px; color:var(--muted); margin-bottom:24px; line-height:1.5; }
+    .plan-row { display:flex; gap:10px; margin-bottom:16px; }
+    .plan-opt { flex:1; background:var(--card2); border:2px solid var(--border); border-radius:16px; padding:16px 12px; text-align:center; cursor:pointer; transition:all .2s; }
+    .plan-opt.sel { border-color:var(--green); background:#0a1a0a; }
+    .plan-opt-name { font-size:11px; font-weight:800; color:var(--muted); text-transform:uppercase; margin-bottom:6px; }
+    .plan-opt-price { font-family:'Syne',sans-serif; font-size:28px; font-weight:800; color:var(--gold); }
+    .plan-opt-per { font-size:10px; color:var(--muted); margin-top:3px; }
+    .plan-opt-save { font-size:10px; color:var(--green); font-weight:800; margin-top:4px; }
+    .modal-cta { display:block; width:100%; padding:16px; border-radius:14px; border:none; font-family:'Nunito',sans-serif; font-size:16px; font-weight:800; cursor:pointer; text-decoration:none; text-align:center; margin-bottom:12px; transition:all .2s; }
+    .modal-cta:hover { transform:translateY(-2px); }
+    .modal-cta.green { background:linear-gradient(135deg,#4ade80,#22c55e); color:#052e16; }
+    .modal-cta.yellow { background:linear-gradient(135deg,#e8ff47,#fbbf24); color:#000; }
+    .modal-skip { display:block; text-align:center; font-size:13px; color:var(--muted); cursor:pointer; padding:8px; }
+    .modal-skip:hover { color:var(--text); }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">
+    <div class="nav-icon">⚡</div>
+    <span class="nav-brand">Spark Extensions</span>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="hero-tag">⚡ Chrome Extensions for ADHD Brains</div>
+  <h1>Browse<br><span class="line2">smarter.</span><br><span class="line3">Focus harder.</span></h1>
+  <p class="hero-sub">Chrome extensions built specifically for brains that work <strong>differently</strong>. Stop fighting the web — make it work for you.</p>
+  <a href="#extensions" class="btn-grad">⚡ See All Extensions</a>
+  <a href="#story" class="btn-outline">Our Story</a>
+</section>
+
+<div class="stats">
+  <div class="stat"><div class="stat-val">7</div><div class="stat-lbl">Extensions</div></div>
+  <div class="stat"><div class="stat-val">Free</div><div class="stat-lbl">To Start</div></div>
+  <div class="stat"><div class="stat-val">ADHD</div><div class="stat-lbl">First Design</div></div>
+</div>
+
+<div class="sec-hdr" id="extensions">
+  <div class="sec-label">Our Extensions</div>
+  <h2>Tools built for your brain.</h2>
+  <p>Every extension is designed with ADHD in mind — low friction, high impact, no clutter.</p>
+</div>
+
+<div class="ext-list">
+
+  <!-- BRAIN SPARK -->
+  <div class="ext-card brainspark">
+    <div class="status-badge live"><div class="dot"></div> Live Now</div>
+    <div class="ext-icon bs">⚡</div>
+    <div class="ext-name">Brain Spark</div>
+    <div class="ext-desc">Turns any webpage into a calming, fully readable experience in real time. Text glow, reading ruler, color overlays and more.</div>
+    <ul class="feat-list">
+      <li>Chunk Text — breaks walls of text into bites</li>
+      <li>Reading ruler that follows your cursor</li>
+      <li>Color overlays to reduce visual noise</li>
+      <li>Focus mode — hides everything but the article</li>
+      <li>Font scaling and line spacing controls</li>
+    </ul>
+    <div class="ext-price"><span class="free">Free</span> &nbsp;·&nbsp; <span class="from">Pro from </span><span class="amount">$2.99</span><span class="from">/mo</span></div>
+    <div class="ext-btns">
+      <a href="https://chromewebstore.google.com/detail/brain-spark" class="btn-primary" target="_blank">⚡ Add to Chrome — Free</a>
+      <a href="https://blxckroze666.github.io/Web/brainspark-mobile.html" class="btn-dark" target="_blank">📱 Mobile App</a>
+    </div>
+  </div>
+
+  <!-- HOME SPARK -->
+  <div class="ext-card homespark">
+    <div class="status-badge live"><div class="dot"></div> Live Now</div>
+    <div class="ext-icon hs">🏠</div>
+    <div class="ext-name">Home Spark</div>
+    <div class="ext-desc">The first voice-powered family manager built for ADHD parents. Track groceries, plan meals, manage chores, and get kids cooking — all hands-free.</div>
+    <ul class="feat-list">
+      <li>Voice control — "I finished the milk" updates your list</li>
+      <li>Depletion buttons — tap as you use things, auto-adds to shopping list</li>
+      <li>Weekly meal planner with kid-friendly step-by-step breakdowns</li>
+      <li>Kids lunch ideas by age — they pick, they make it</li>
+      <li>Chore tracker with points for kids</li>
+      <li>Morning & evening routines built in</li>
+    </ul>
+    <div class="ext-price"><span class="free">Free</span> &nbsp;·&nbsp; <span class="from">Pro from </span><span class="amount">$2.99</span><span class="from">/mo</span></div>
+    <div class="ext-btns">
+      <a href="https://chromewebstore.google.com/detail/home-spark" class="btn-green" target="_blank">🏠 Add to Chrome — Free</a>
+      <button class="btn-dark" onclick="openHSModal()">📱 Mobile App</button>
+    </div>
+    <div style="margin-top:10px">
+      <button class="btn-gold" style="width:100%" onclick="openHSModal()">⚡ Unlock Pro — $2.99/mo</button>
+    </div>
+  </div>
+
+  <!-- HUNT -->
+  <div class="ext-card hunt">
+    <div class="status-badge live"><div class="dot"></div> Live Now</div>
+    <div class="ext-icon ht">🎯</div>
+    <div class="ext-name">HUNT</div>
+    <div class="ext-desc">Add anything to your list. HUNT finds the cheapest nearby price for gas, groceries, pharmacy items and more — then alerts you when you drive past the best deal.</div>
+    <ul class="feat-list">
+      <li>Real gas prices — live data from stations near you</li>
+      <li>Grocery, pharmacy, auto & general items tracked</li>
+      <li>Geo alerts — notified when you're near the cheapest option</li>
+      <li>Full price ranking — cheapest to most expensive</li>
+      <li>Works while you drive — background scanning with Pro</li>
+    </ul>
+    <div class="ext-price"><span class="free">Free</span> &nbsp;·&nbsp; <span class="from">Pro from </span><span class="amount">$2.99</span><span class="from">/mo</span></div>
+    <div class="ext-btns">
+      <a href="https://chromewebstore.google.com/detail/hunt" class="btn-yellow" target="_blank">🎯 Add to Chrome — Free</a>
+      <a href="https://blxckroze666.github.io/Web/hunt-pwa.html" class="btn-dark" target="_blank">📱 Mobile App</a>
+    </div>
+    <div style="margin-top:10px">
+      <button class="btn-gold" style="width:100%" onclick="openHuntModal()">⚡ Unlock Pro — $2.99/mo</button>
+    </div>
+  </div>
+
+  <!-- TUBESYNC -->
+  <div class="ext-card tubesync">
+    <div class="status-badge live"><div class="dot"></div> Live Now</div>
+    <div class="ext-icon ts">⚽</div>
+    <div class="ext-name">TubeSync</div>
+    <div class="ext-desc">Link your phone to YouTube soccer podcasts using a 4-digit code. Fans send live tactical overlays and crowd audio directly into your desktop video — in real time.</div>
+    <ul class="feat-list">
+      <li>4-digit code sync — no app download, no login required</li>
+      <li>Live pitch overlays — fan taps appear as glowing heatwaves on video</li>
+      <li>Crowd audio board — Cheer, Boo, VAR, Whistle through your browser</li>
+      <li>Multiple fans can connect at once</li>
+      <li>Works on any YouTube soccer video or podcast</li>
+    </ul>
+    <div class="ext-price"><span class="free">Free</span> &nbsp;·&nbsp; <span class="from">Open source</span></div>
+    <div class="ext-btns">
+      <a href="https://chromewebstore.google.com/detail/tubesync" class="btn-cyan" target="_blank">⚽ Add to Chrome — Free</a>
+      <a href="https://blxckroze666.github.io/tubesync" class="btn-dark" target="_blank">📱 Fan App</a>
+    </div>
+  </div>
+
+  <!-- TRADESYNC -->
+  <div class="ext-card tradesync">
+    <div class="status-badge live"><div class="dot"></div> Live Now</div>
+    <div class="ext-icon tr">📊</div>
+    <div class="ext-name">TradeSync</div>
+    <div class="ext-desc">AI-powered trading bot for Alpaca. Analyzes your watchlist in real time, detects buy/sell signals, and sends every trade to your phone for approval before anything executes.</div>
+    <ul class="feat-list">
+      <li>AI signal engine — RSI, SMA, MACD, volume analysis</li>
+      <li>Paper + live trading — one tap to switch between both</li>
+      <li>Mobile approvals — approve or reject every trade from your phone</li>
+      <li>Auto position sizing — calculates trade size from your portfolio %</li>
+      <li>Live portfolio dashboard — positions, P&L, orders</li>
+      <li>BYOK — your free Alpaca keys, your data, your control</li>
+    </ul>
+    <div class="ext-price"><span class="free">Free</span> &nbsp;·&nbsp; <span class="from">Alpaca account required (free)</span></div>
+    <div class="ext-btns">
+      <a href="https://chromewebstore.google.com/detail/tradesync" class="btn-green" target="_blank">📊 Add to Chrome — Free</a>
+      <a href="https://blxckroze666.github.io/Web/tradesync-mobile.html" class="btn-dark" target="_blank">📱 Mobile App</a>
+    </div>
+    <div style="margin-top:10px">
+      <a href="https://buy.stripe.com/00w5kCdB9coLbed3lRe7m0f" class="btn-gold" style="width:100%;display:block;text-align:center;text-decoration:none;padding:13px;border-radius:12px;font-weight:800;font-size:14px;color:#1a0a00" target="_blank">⚡ Unlock Pro — $9.99/mo</a>
+    </div>
+  </div>
+
+  <!-- AURAMOOD -->
+  <div class="ext-card auramood">
+    <div class="status-badge live"><div class="dot"></div> Live Now</div>
+    <div class="ext-icon am">🌊</div>
+    <div class="ext-name">AuraMood</div>
+    <div class="ext-desc">Your personal AI companion that reads the room. Pick your mood when you open it — friend, assistant, calm, hype — and Aura shifts to match. Knows your name, your reminders, and your energy.</div>
+    <ul class="feat-list">
+      <li>AI companion powered by Groq — blazing fast, free with BYOK key</li>
+      <li>Mood selector on open — Aura adapts tone to match how you feel</li>
+      <li>Voice input — tap the mic, talk naturally, Aura listens</li>
+      <li>Smart reminders — Appointments, Birthdays, Kids, Grocery, School, Other — color-coded, fires browser notifications even when popup is closed</li>
+      <li>Syncs across all Chrome devices automatically — phone, tablet, laptop</li>
+      <li>Free: 3 avatars (⚡🤖🦊) · Pro: 5 themes + 6 avatars + custom companion name</li>
+    </ul>
+    <div class="ext-price"><span class="free">Free</span> &nbsp;·&nbsp; <span class="from">Pro from </span><span class="amount">$3.99</span><span class="from">/mo</span></div>
+    <div class="ext-btns">
+      <a href="https://chromewebstore.google.com/detail/auramood" class="btn-cyan" target="_blank">🌊 Add to Chrome — Free</a>
+      <a href="https://blxckroze666.github.io/Web/auramood-mobile.html" class="btn-dark" target="_blank">📱 Mobile App</a>
+    </div>
+    <div style="margin-top:10px">
+      <button class="btn-gold" style="width:100%" onclick="openAMModal()">⚡ Unlock Pro — $3.99/mo</button>
+    </div>
+  </div>
+
+  <!-- TAB MELT -->
+  <div class="ext-card tabmelt">
+    <div class="status-badge live"><div class="dot"></div> Live Now</div>
+    <div class="ext-icon tm">🔥</div>
+    <div class="ext-name">Tab Melt</div>
+    <div class="ext-desc">Stop drowning in 47 open tabs. Tab Melt intelligently groups, hibernates, and revives your tabs so your brain can actually breathe.</div>
+    <ul class="feat-list">
+      <li>Auto-group tabs by topic or domain</li>
+      <li>Hibernate unused tabs to save memory</li>
+      <li>One-click tab session saving & restoring</li>
+      <li>Visual tab map — see everything at a glance</li>
+      <li>Tab limit alerts before overwhelm hits</li>
+    </ul>
+    <div class="ext-price"><span class="free">Free</span> &nbsp;·&nbsp; <span class="from">Always free. Open source.</span></div>
+    <div class="ext-btns" style="margin-bottom:10px">
+      <a href="https://chromewebstore.google.com/detail/tabmelt" class="btn-primary" target="_blank" style="flex:1">🔥 Add to Chrome — Free</a>
+      <a href="https://blxckroze666.github.io/Web/tabmelt-mobile.html" class="btn-dark" target="_blank">📱 Mobile App</a>
+    </div>
+  </div>
+
+  <!-- MORE COMING -->
+  <div class="ext-card coming">
+    <div class="status-badge dev"><div class="dot"></div> In Development</div>
+    <div class="ext-icon mc">🧪</div>
+    <div class="ext-name">More Coming</div>
+    <div class="ext-desc">We're constantly building new tools for ADHD brains. Focus timers, distraction blockers, reading aids, and more on the way.</div>
+    <ul class="feat-list">
+      <li>Distraction Blocker</li>
+      <li>Pomodoro Focus Timer</li>
+      <li>Smart Bookmark Organizer</li>
+      <li>Reading Speed Trainer</li>
+    </ul>
+    <div class="ext-price"><span class="tba">TBA</span></div>
+    <button class="btn-notify" id="notify-more">🔔 Stay in the Loop</button>
+  </div>
+
+</div>
+
+<section class="why" id="story">
+  <div class="why-label">Why Spark Extensions</div>
+  <h2>Built different,<br>for brains that are.</h2>
+  <div class="why-grid">
+    <div class="why-item">
+      <div class="why-icon">🧠</div>
+      <div class="why-info"><h3>ADHD-First Design</h3><p>Every decision — layout, color, interaction — is made with ADHD brains in mind. Low friction, high clarity.</p></div>
+    </div>
+    <div class="why-item">
+      <div class="why-icon">⚡</div>
+      <div class="why-info"><h3>One Click, Done</h3><p>No menus to navigate. No settings to configure. Open it and it just works.</p></div>
+    </div>
+    <div class="why-item">
+      <div class="why-icon">🔒</div>
+      <div class="why-info"><h3>Private by Default</h3><p>No accounts. No tracking. Your data stays on your device. Always.</p></div>
+    </div>
+    <div class="why-item">
+      <div class="why-icon">💚</div>
+      <div class="why-info"><h3>Free to Start</h3><p>Every extension works for free. Upgrade when you're ready. No pressure, no paywalls on core features.</p></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-logo">⚡ Spark Extensions</div>
+  <div class="footer-links">
+    <a href="#extensions">Extensions</a>
+    <a href="#story">Our Story</a>
+    <a href="privacy-policy.html">Privacy Policy</a>
+    <a href="mailto:support@sparkextensions.com">Support</a>
+  </div>
+  <p>Built for ADHD brains. Free to start. © 2026 Spark Extensions</p>
+</footer>
+
+<!-- HOME SPARK MODAL -->
+<div class="modal-bg" id="hs-modal">
+  <div class="modal" style="border-top:1px solid #4ade8044">
+    <div class="modal-handle"></div>
+    <div class="modal-title" style="color:var(--green)">🏠 Home Spark Pro</div>
+    <div class="modal-sub">Unlock smart reminders, calendar sync & more</div>
+    <div class="plan-row">
+      <div class="plan-opt" id="hs-monthly" onclick="selectHS('monthly')">
+        <div class="plan-opt-name">Monthly</div>
+        <div class="plan-opt-price">$2.99</div>
+        <div class="plan-opt-per">per month</div>
+      </div>
+      <div class="plan-opt sel" id="hs-yearly" onclick="selectHS('yearly')">
+        <div class="plan-opt-name">Yearly 🔥</div>
+        <div class="plan-opt-price">$17.99</div>
+        <div class="plan-opt-per">per year</div>
+        <div class="plan-opt-save">Save 50%</div>
+      </div>
+    </div>
+    <a href="https://buy.stripe.com/eVqcN40On4Wj3LL5tZe7m03" class="modal-cta green" id="hs-cta" target="_blank">💳 Start Pro — $17.99/yr</a>
+    <span class="modal-skip" onclick="closeModal('hs-modal')">No thanks, keep free version</span>
+  </div>
+</div>
+
+<!-- HUNT MODAL -->
+<div class="modal-bg" id="hunt-modal">
+  <div class="modal" style="border-top:1px solid #e8ff4744">
+    <div class="modal-handle"></div>
+    <div class="modal-title" style="color:var(--yellow)">🎯 HUNT Pro</div>
+    <div class="modal-sub">Unlock background alerts, unlimited items & more</div>
+    <div class="plan-row">
+      <div class="plan-opt" id="hunt-monthly" onclick="selectHunt('monthly')">
+        <div class="plan-opt-name">Monthly</div>
+        <div class="plan-opt-price">$2.99</div>
+        <div class="plan-opt-per">per month</div>
+      </div>
+      <div class="plan-opt sel" id="hunt-yearly" onclick="selectHunt('yearly')">
+        <div class="plan-opt-name">Yearly 🔥</div>
+        <div class="plan-opt-price">$14.99</div>
+        <div class="plan-opt-per">per year</div>
+        <div class="plan-opt-save">Save 37%</div>
+      </div>
+    </div>
+    <a href="https://buy.stripe.com/eVqeVc1Sr2ObfutbSne7m05" class="modal-cta yellow" id="hunt-cta" target="_blank">💳 Start Pro — $14.99/yr</a>
+    <span class="modal-skip" onclick="closeModal('hunt-modal')">No thanks, keep free version</span>
+  </div>
+</div>
+
+<!-- AURAMOOD MODAL -->
+<div class="modal-bg" id="am-modal">
+  <div class="modal" style="border-top:1px solid #22d3ee44">
+    <div class="modal-handle"></div>
+    <div class="modal-title" style="background:linear-gradient(90deg,#22d3ee,#a855f7);-webkit-background-clip:text;-webkit-text-fill-color:transparent">🌊 AuraMood Pro</div>
+    <div class="modal-sub">Unlock all themes, avatars, custom name & priority AI</div>
+    <div class="plan-row">
+      <div class="plan-opt" id="am-monthly" onclick="selectAM('monthly')">
+        <div class="plan-opt-name">Monthly</div>
+        <div class="plan-opt-price">$3.99</div>
+        <div class="plan-opt-per">per month</div>
+      </div>
+      <div class="plan-opt sel" id="am-yearly" onclick="selectAM('yearly')">
+        <div class="plan-opt-name">Yearly 🔥</div>
+        <div class="plan-opt-price">$24.99</div>
+        <div class="plan-opt-per">per year</div>
+        <div class="plan-opt-save">Save 48%</div>
+      </div>
+    </div>
+    <a href="https://buy.stripe.com/8x24gycx50G3bed2hNe7m0a" class="modal-cta aura" id="am-cta" target="_blank">💳 Start Pro — $24.99/yr</a>
+    <span class="modal-skip" onclick="closeModal('am-modal')">No thanks, keep free version</span>
+  </div>
+</div>
+
+<script>
+  const AM = { monthly:'https://buy.stripe.com/8x24gycx50G3bed2hNe7m0a', yearly:'https://buy.stripe.com/8x24gycx50G3bed2hNe7m0a' };
+  const AM_LABELS = { monthly:'💳 Start Pro — $3.99/mo', yearly:'💳 Start Pro — $24.99/yr' };
+
+  function openAMModal() { document.getElementById('am-modal').classList.add('open'); }
+  document.getElementById('am-modal').addEventListener('click', e => { if(e.target===document.getElementById('am-modal')) closeModal('am-modal'); });
+  function selectAM(plan) {
+    document.getElementById('am-monthly').classList.toggle('sel', plan==='monthly');
+    document.getElementById('am-yearly').classList.toggle('sel', plan==='yearly');
+    const c = document.getElementById('am-cta');
+    c.href = AM[plan]; c.textContent = AM_LABELS[plan];
+  }
+
+  const HS = { monthly:'https://buy.stripe.com/9B6cN42Wv74r6XX7C7e7m02', yearly:'https://buy.stripe.com/eVqcN40On4Wj3LL5tZe7m03' };
+  const HUNT = { monthly:'https://buy.stripe.com/fZu7sK8gP60n4PPbSne7m0g', yearly:'https://buy.stripe.com/eVqeVc1Sr2ObfutbSne7m05' };
+  const HS_LABELS = { monthly:'💳 Start Pro — $2.99/mo', yearly:'💳 Start Pro — $17.99/yr' };
+  const HUNT_LABELS = { monthly:'💳 Start Pro — $2.99/mo', yearly:'💳 Start Pro — $14.99/yr' };
+
+  function openHSModal() { document.getElementById('hs-modal').classList.add('open'); }
+  function openHuntModal() { document.getElementById('hunt-modal').classList.add('open'); }
+  function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+  document.getElementById('hs-modal').addEventListener('click', e => { if(e.target===document.getElementById('hs-modal')) closeModal('hs-modal'); });
+  document.getElementById('hunt-modal').addEventListener('click', e => { if(e.target===document.getElementById('hunt-modal')) closeModal('hunt-modal'); });
+
+  function selectHS(plan) {
+    document.getElementById('hs-monthly').classList.toggle('sel', plan==='monthly');
+    document.getElementById('hs-yearly').classList.toggle('sel', plan==='yearly');
+    const c = document.getElementById('hs-cta');
+    c.href = HS[plan]; c.textContent = HS_LABELS[plan];
+  }
+
+  function selectHunt(plan) {
+    document.getElementById('hunt-monthly').classList.toggle('sel', plan==='monthly');
+    document.getElementById('hunt-yearly').classList.toggle('sel', plan==='yearly');
+    const c = document.getElementById('hunt-cta');
+    c.href = HUNT[plan]; c.textContent = HUNT_LABELS[plan];
+  }
+
+  document.querySelectorAll('.btn-notify').forEach(btn => {
+    btn.addEventListener('click', () => {
+      btn.textContent = "✅ You're on the list!";
+      btn.style.color = 'var(--green)';
+      btn.style.borderColor = '#4ade8044';
+    });
+  });
+</script>
+</body>
+</html>

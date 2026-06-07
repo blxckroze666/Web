@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="theme-color" content="#0a0a0a"/>
+<title>HUNT — Mobile</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg:#0a0a0a; --surface:#111; --surface2:#1a1a1a;
+    --border:#2a2a2a; --accent:#e8ff47; --accent2:#ff6b35;
+    --green:#47ffb2; --purple:#b47fff; --blue:#47b2ff;
+    --text:#f0f0f0; --muted:#666;
+    --safe-top:env(safe-area-inset-top,0px);
+    --safe-bottom:env(safe-area-inset-bottom,0px);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;}
+  .app{display:flex;flex-direction:column;height:100vh;height:100dvh;padding-top:var(--safe-top);}
+
+  .header{padding:12px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface);flex-shrink:0;}
+  .logo{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:3px;color:var(--accent);}
+  .logo span{color:var(--accent2);}
+  .header-right{display:flex;align-items:center;gap:8px;}
+  .loc-pill{display:flex;align-items:center;gap:5px;background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:4px 10px;font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);}
+  .loc-dot{width:6px;height:6px;background:var(--accent);border-radius:50%;animation:pulse 2s infinite;}
+  .pro-badge{background:var(--accent);color:#000;font-family:'Bebas Neue',sans-serif;font-size:11px;letter-spacing:1px;padding:3px 8px;border-radius:6px;cursor:pointer;}
+  .pro-badge.active{background:var(--green);}
+  @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.8)}}
+
+  .tabs{display:flex;border-bottom:1px solid var(--border);background:var(--surface);flex-shrink:0;}
+  .tab{flex:1;padding:12px 6px;text-align:center;font-size:11px;font-weight:700;letter-spacing:.5px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;font-family:'DM Mono',monospace;}
+  .tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+
+  .content{flex:1;overflow:hidden;position:relative;}
+  .view{display:none;height:100%;flex-direction:column;overflow:hidden;}
+  .view.active{display:flex;}
+
+  .add-section{padding:12px 16px;border-bottom:1px solid var(--border);flex-shrink:0;}
+  .add-row{display:flex;gap:8px;}
+  .add-input{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:11px 14px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;-webkit-appearance:none;}
+  .add-input:focus{border-color:var(--accent);}
+  .add-input::placeholder{color:var(--muted);}
+  .add-btn{width:42px;height:42px;background:var(--accent);border:none;border-radius:10px;color:#000;font-size:22px;font-weight:bold;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .hint{margin-top:6px;font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;}
+  .hint span{color:var(--accent);}
+
+  .filters{display:flex;gap:6px;padding:10px 16px;border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none;flex-shrink:0;}
+  .filters::-webkit-scrollbar{display:none;}
+  .chip{padding:5px 12px;border-radius:20px;font-size:10px;font-family:'DM Mono',monospace;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;white-space:nowrap;transition:all .15s;}
+  .chip.active{border-color:var(--accent);color:var(--accent);background:rgba(232,255,71,.07);}
+
+  .item-scroll{flex:1;overflow-y:auto;padding:12px 16px;-webkit-overflow-scrolling:touch;}
+  .item-scroll::-webkit-scrollbar{display:none;}
+  .list-label{font-size:9px;font-family:'DM Mono',monospace;color:var(--muted);letter-spacing:2px;padding:0 0 8px;}
+
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:13px;margin-bottom:8px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;animation:slideIn .25s ease;}
+  @keyframes slideIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+  .card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:3px 0 0 3px;}
+  .card.gas::before{background:#ff6b35;}
+  .card.grocery::before{background:#47ffb2;}
+  .card.pharmacy::before{background:#b47fff;}
+  .card.auto::before{background:#47b2ff;}
+  .card.general::before{background:var(--accent);}
+  .card-icon{font-size:20px;width:28px;text-align:center;flex-shrink:0;}
+  .card-info{flex:1;min-width:0;}
+  .card-name{font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px;}
+  .card-meta{font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);display:flex;align-items:center;gap:5px;}
+  .sdot{width:5px;height:5px;border-radius:50%;background:var(--muted);display:inline-block;flex-shrink:0;}
+  .sdot.scanning{background:var(--accent);animation:pulse 1.5s infinite;}
+  .sdot.found{background:#47ffb2;}
+  .sdot.nearby{background:#ff6b35;animation:pulse 1s infinite;}
+  .price-tag{background:rgba(232,255,71,.1);border:1px solid rgba(232,255,71,.3);color:var(--accent);font-family:'DM Mono',monospace;font-size:11px;padding:3px 8px;border-radius:6px;white-space:nowrap;flex-shrink:0;}
+  .price-tag.nearby{background:rgba(255,107,53,.15);border-color:rgba(255,107,53,.4);color:var(--accent2);animation:glow 1.5s ease-in-out infinite alternate;}
+  @keyframes glow{from{box-shadow:0 0 4px rgba(255,107,53,.3)}to{box-shadow:0 0 12px rgba(255,107,53,.6)}}
+  .del-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;padding:4px 6px;border-radius:6px;flex-shrink:0;}
+  .del-btn:active{color:#ff4757;}
+
+  .empty{text-align:center;padding:40px 20px;color:var(--muted);}
+  .empty-icon{font-size:36px;margin-bottom:10px;}
+  .empty-title{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;color:#333;margin-bottom:6px;}
+  .empty-sub{font-size:12px;line-height:1.5;}
+
+  .scan-footer{padding:12px 16px;border-top:1px solid var(--border);background:var(--surface);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;padding-bottom:calc(12px + var(--safe-bottom));}
+  .stats-txt{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);}
+  .stats-txt span{color:var(--accent);}
+  .scan-btn{background:var(--accent);border:none;border-radius:8px;padding:10px 20px;font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1.5px;color:#000;cursor:pointer;transition:all .15s;}
+  .scan-btn:active{transform:scale(.96);}
+  .scan-btn:disabled{opacity:.5;}
+
+  .nearby-view{flex:1;overflow-y:auto;padding:16px;-webkit-overflow-scrolling:touch;}
+  .nearby-view::-webkit-scrollbar{display:none;}
+  .nearby-header{font-size:9px;font-family:'DM Mono',monospace;color:var(--muted);letter-spacing:2px;margin-bottom:12px;}
+  .nearby-card{background:var(--surface);border:1px solid #ff6b3533;border-radius:12px;padding:14px;margin-bottom:10px;animation:glow2 2s ease-in-out infinite alternate;}
+  @keyframes glow2{from{box-shadow:0 0 8px rgba(255,107,53,.1)}to{box-shadow:0 0 20px rgba(255,107,53,.3)}}
+  .nearby-card-name{font-size:15px;font-weight:600;margin-bottom:4px;}
+  .nearby-card-store{font-size:13px;color:var(--accent2);font-weight:500;margin-bottom:2px;}
+  .nearby-card-price{font-family:'DM Mono',monospace;font-size:18px;color:var(--accent);font-weight:500;}
+  .nearby-card-dist{font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;margin-top:4px;}
+  .no-nearby{text-align:center;padding:50px 20px;color:var(--muted);}
+
+  /* SYNC VIEW */
+  .sync-view{flex:1;overflow-y:auto;padding:20px 16px;-webkit-overflow-scrolling:touch;}
+  .sync-title{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;color:var(--accent);margin-bottom:6px;}
+  .sync-sub{font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;margin-bottom:20px;line-height:1.6;}
+  .sync-input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;color:var(--text);font-family:'DM Mono',monospace;font-size:18px;letter-spacing:4px;outline:none;text-align:center;margin-bottom:10px;}
+  .sync-input:focus{border-color:var(--accent);}
+  .sync-input::placeholder{color:var(--muted);letter-spacing:2px;font-size:13px;}
+  .sync-btn{width:100%;background:var(--accent);border:none;border-radius:10px;padding:14px;font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:2px;color:#000;cursor:pointer;margin-bottom:10px;}
+  .sync-divider{text-align:center;color:var(--muted);font-size:10px;font-family:'DM Mono',monospace;margin:12px 0;}
+  .sync-status{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;font-size:12px;font-family:'DM Mono',monospace;color:var(--muted);margin-top:10px;}
+  .sync-status span{color:var(--green);}
+
+  /* PRO VIEW */
+  .pro-view{flex:1;overflow-y:auto;padding:20px 16px;}
+  .pro-hero{text-align:center;padding:20px 0 24px;}
+  .pro-icon{font-size:48px;margin-bottom:10px;}
+  .pro-title{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:3px;color:var(--accent);margin-bottom:6px;}
+  .pro-desc{font-size:12px;color:var(--muted);line-height:1.7;max-width:280px;margin:0 auto;}
+  .pro-features{margin:16px 0;}
+  .pro-feature{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);}
+  .pro-feature:last-child{border-bottom:none;}
+  .pro-feature-icon{font-size:18px;flex-shrink:0;margin-top:1px;}
+  .pro-feature-text{font-size:13px;line-height:1.5;}
+  .pro-feature-text strong{color:var(--text);display:block;margin-bottom:2px;}
+  .pro-feature-text span{color:var(--muted);font-size:11px;}
+  .pro-cta{background:var(--accent);border:none;border-radius:12px;width:100%;padding:16px;font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;color:#000;cursor:pointer;margin-top:16px;}
+  .pro-cta:active{transform:scale(.98);}
+  .pro-already{text-align:center;margin-top:12px;}
+  .pro-key-row{display:flex;gap:8px;margin-top:8px;}
+  .pro-key-input{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-family:'DM Mono',monospace;font-size:13px;outline:none;}
+  .pro-key-input:focus{border-color:var(--accent);}
+  .pro-key-btn{background:var(--surface2);border:1px solid var(--accent);border-radius:8px;padding:10px 14px;color:var(--accent);font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;white-space:nowrap;}
+
+  /* MODAL */
+  .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:200;align-items:flex-end;}
+  .modal-overlay.open{display:flex;}
+  .modal{background:var(--surface);border:1px solid var(--border);border-radius:16px 16px 0 0;padding:20px 18px;width:100%;max-height:75vh;overflow-y:auto;animation:slideUp .25s ease;padding-bottom:calc(20px + var(--safe-bottom));}
+  @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+  .modal-handle{width:36px;height:4px;background:var(--border);border-radius:4px;margin:0 auto 16px;}
+  .modal-title{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;color:var(--accent);margin-bottom:4px;}
+  .modal-sub{font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;margin-bottom:14px;}
+  .deal-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border);}
+  .deal-row:last-child{border-bottom:none;}
+  .deal-store{font-size:14px;font-weight:500;}
+  .deal-dist{font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;margin-top:2px;}
+  .deal-price{font-family:'DM Mono',monospace;font-size:16px;color:var(--accent);font-weight:500;}
+  .deal-price.best{color:#47ffb2;}
+  .best-badge{font-size:9px;background:rgba(71,255,178,.1);border:1px solid rgba(71,255,178,.3);color:#47ffb2;padding:2px 6px;border-radius:8px;font-family:'DM Mono',monospace;margin-left:6px;}
+  .loading-msg{text-align:center;padding:20px;color:var(--muted);font-family:'DM Mono',monospace;font-size:11px;}
+
+  .toast{position:fixed;bottom:calc(80px + var(--safe-bottom));left:16px;right:16px;background:rgba(0,0,0,.9);border:1px solid var(--accent);border-radius:10px;padding:10px 16px;font-size:12px;font-weight:600;color:var(--accent);z-index:300;opacity:0;transition:opacity .3s;pointer-events:none;text-align:center;font-family:'DM Mono',monospace;}
+  .toast.show{opacity:1;}
+
+  .bottom-nav{display:flex;border-top:1px solid var(--border);background:var(--surface);flex-shrink:0;padding-bottom:var(--safe-bottom);}
+  .nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 4px;gap:3px;background:none;border:none;color:var(--muted);cursor:pointer;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.5px;transition:color .2s;}
+  .nav-btn.active{color:var(--accent);}
+  .nav-btn span:first-child{font-size:18px;}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="header">
+    <div class="logo">HU<span>N</span>T</div>
+    <div class="header-right">
+      <div class="loc-pill">
+        <div class="loc-dot"></div>
+        <span id="locText">locating...</span>
+      </div>
+      <div class="pro-badge" id="proBadge" onclick="showView('pro')">PRO</div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- LIST VIEW -->
+    <div class="view active" id="listView">
+      <div class="add-section">
+        <div class="add-row">
+          <input class="add-input" id="itemInput" type="text" placeholder="gas, milk, ibuprofen..." onkeydown="if(event.key==='Enter')addItem()"/>
+          <button class="add-btn" onclick="addItem()">+</button>
+        </div>
+        <div class="hint">finds cheapest nearby · <span>geo alerts on</span></div>
+      </div>
+      <div class="filters">
+        <button class="chip active" onclick="filterBy('all',this)">ALL</button>
+        <button class="chip" onclick="filterBy('gas',this)">⛽ GAS</button>
+        <button class="chip" onclick="filterBy('grocery',this)">🛒 GROCERY</button>
+        <button class="chip" onclick="filterBy('pharmacy',this)">💊 PHARMACY</button>
+        <button class="chip" onclick="filterBy('auto',this)">🔧 AUTO</button>
+      </div>
+      <div class="item-scroll">
+        <div class="list-label">YOUR HUNT LIST</div>
+        <div id="itemList"></div>
+      </div>
+      <div class="scan-footer">
+        <div class="stats-txt"><span id="itemCount">0</span> items · <span id="alertCount">0</span> nearby</div>
+        <button class="scan-btn" id="scanBtn" onclick="scanAll()">⚡ SCAN NOW</button>
+      </div>
+    </div>
+
+    <!-- NEARBY VIEW -->
+    <div class="view" id="nearbyView">
+      <div class="nearby-view">
+        <div class="nearby-header">DEALS NEAR YOU NOW</div>
+        <div id="nearbyList"></div>
+      </div>
+    </div>
+
+    <!-- SYNC VIEW -->
+    <div class="view" id="syncView">
+      <div class="sync-view">
+        <div class="sync-title">SYNC WITH EXTENSION</div>
+        <div class="sync-sub">Enter your sync code from the HUNT Chrome extension to share your list across all devices. Same list, everywhere.</div>
+        <input class="sync-input" id="syncCodeInput" type="text" placeholder="Enter sync code" maxlength="8"/>
+        <button class="sync-btn" onclick="applySync()">⚡ SYNC NOW</button>
+        <div class="sync-divider">— or —</div>
+        <button class="sync-btn" style="background:var(--surface2);color:var(--accent);border:1px solid var(--accent)" onclick="generateSyncCode()">GENERATE NEW CODE</button>
+        <div class="sync-status" id="syncStatus">Status: <span id="syncStatusText">not synced</span></div>
+        <div style="margin-top:16px;font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;line-height:1.8;">
+          HOW IT WORKS:<br>
+          1. Open HUNT extension on desktop<br>
+          2. Go to Settings → Sync<br>
+          3. Enter the same code here<br>
+          4. Your list syncs automatically
+        </div>
+      </div>
+    </div>
+
+    <!-- PRO VIEW -->
+    <div class="view" id="proView">
+      <div class="pro-view">
+        <div class="pro-hero">
+          <div class="pro-icon">🎯</div>
+          <div class="pro-title">HUNT PRO</div>
+          <div class="pro-desc">Background scanning, geo alerts while driving, unlimited list, price history and more.</div>
+        </div>
+        <div class="pro-features">
+          <div class="pro-feature">
+            <div class="pro-feature-icon">📍</div>
+            <div class="pro-feature-text">
+              <strong>Background Geo Alerts</strong>
+              <span>Get notified when you drive past the cheapest option on your list</span>
+            </div>
+          </div>
+          <div class="pro-feature">
+            <div class="pro-feature-icon">🔄</div>
+            <div class="pro-feature-text">
+              <strong>Auto Scan Every 30 Min</strong>
+              <span>Prices update automatically so you always have the latest deals</span>
+            </div>
+          </div>
+          <div class="pro-feature">
+            <div class="pro-feature-icon">📊</div>
+            <div class="pro-feature-text">
+              <strong>Price History</strong>
+              <span>See if a price is going up or down before you buy</span>
+            </div>
+          </div>
+          <div class="pro-feature">
+            <div class="pro-feature-icon">🔗</div>
+            <div class="pro-feature-text">
+              <strong>Extension Sync</strong>
+              <span>Your list syncs between the Chrome extension and this app</span>
+            </div>
+          </div>
+          <div class="pro-feature">
+            <div class="pro-feature-icon">♾️</div>
+            <div class="pro-feature-text">
+              <strong>Unlimited List</strong>
+              <span>Free tier is limited to 10 items. Pro is unlimited.</span>
+            </div>
+          </div>
+        </div>
+        <button class="pro-cta" onclick="window.open('https://buy.stripe.com/fZu7sK8gP60n4PPbSne7m0g','_blank')">⚡ UNLOCK PRO — $1.99/MO</button>
+        <div class="pro-already">
+          <div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;margin-bottom:6px;">Already have a license key?</div>
+          <div class="pro-key-row">
+            <input class="pro-key-input" id="licKeyInput" placeholder="BLXCK-XXXXXXXX" type="text"/>
+            <button class="pro-key-btn" onclick="activateLicense()">ACTIVATE</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <nav class="bottom-nav">
+    <button class="nav-btn active" id="nav-list" onclick="showView('list')"><span>🎯</span><span>LIST</span></button>
+    <button class="nav-btn" id="nav-nearby" onclick="showView('nearby')"><span>📍</span><span>NEARBY</span></button>
+    <button class="nav-btn" id="nav-sync" onclick="showView('sync')"><span>🔗</span><span>SYNC</span></button>
+    <button class="nav-btn" id="nav-pro" onclick="showView('pro')"><span>⚡</span><span>PRO</span></button>
+  </nav>
+</div>
+
+<!-- DEAL MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="modalTitle">RESULTS</div>
+    <div class="modal-sub" id="modalSub">cheapest options near you</div>
+    <div id="modalBody"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── STRIPE ────────────────────────────────────────────────
+const STRIPE = { monthly: 'https://buy.stripe.com/fZu7sK8gP60n4PPbSne7m0g' };
+
+// ── CONSTANTS ─────────────────────────────────────────────
+const FREE_LIMIT = 10;
+const KEY_PREFIXES = ['BLXCK-','HUNT-','SPARK-'];
+
+const CATS = {
+  gas:      { icon:'⛽', keys:['gas','fuel','gasoline','diesel','petrol','premium','regular','unleaded'] },
+  grocery:  { icon:'🛒', keys:['milk','bread','eggs','grocery','food','water','juice','chicken','beef','rice','beans','snack','cereal','butter','cheese','produce','fruit'] },
+  pharmacy: { icon:'💊', keys:['ibuprofen','tylenol','advil','medicine','pharmacy','vitamin','aspirin','bandage','cold','flu','pill','rx','medication','allergy'] },
+  auto:     { icon:'🔧', keys:['oil','tire','wipers','battery','filter','brake','coolant','antifreeze','car wash','wiper','spark'] },
+  general:  { icon:'📦', keys:[] }
+};
+
+// ── STATE ─────────────────────────────────────────────────
+let items = JSON.parse(localStorage.getItem('huntItems') || '[]');
+let isPro = localStorage.getItem('huntPro') === 'true';
+let syncCode = localStorage.getItem('huntSyncCode') || '';
+let activeFilter = 'all';
+let currentLat = null, currentLon = null;
+let autoScanInterval = null;
+
+// ── INIT ──────────────────────────────────────────────────
+function init() {
+  updateProUI();
+  render();
+  updateStats();
+  getLocation();
+  if (syncCode) document.getElementById('syncStatusText').textContent = `synced · code: ${syncCode}`;
+  if (isPro) startAutoScan();
+}
+
+function updateProUI() {
+  const badge = document.getElementById('proBadge');
+  badge.textContent = isPro ? '✓ PRO' : 'PRO';
+  badge.className = `pro-badge ${isPro ? 'active' : ''}`;
+}
+
+// ── VIEWS ─────────────────────────────────────────────────
+function showView(view) {
+  const views = { list:'listView', nearby:'nearbyView', sync:'syncView', pro:'proView' };
+  Object.values(views).forEach(v => document.getElementById(v).classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(views[view]).classList.add('active');
+  const navBtn = document.getElementById(`nav-${view}`);
+  if (navBtn) navBtn.classList.add('active');
+}
+
+// ── LOCATION ──────────────────────────────────────────────
+function getLocation() {
+  if (!navigator.geolocation) { document.getElementById('locText').textContent = 'no gps'; return; }
+  navigator.geolocation.watchPosition(pos => {
+    currentLat = pos.coords.latitude;
+    currentLon = pos.coords.longitude;
+    const city = `${currentLat.toFixed(2)}, ${currentLon.toFixed(2)}`;
+    document.getElementById('locText').textContent = city;
+    checkNearbyAlerts();
+  }, () => {
+    document.getElementById('locText').textContent = 'enable location';
+  }, { enableHighAccuracy: true, maximumAge: 30000 });
+}
+
+// ── ITEMS ─────────────────────────────────────────────────
+function detectCat(text) {
+  text = text.toLowerCase();
+  for (const [cat, data] of Object.entries(CATS)) {
+    if (data.keys.some(k => text.includes(k))) return cat;
+  }
+  return 'general';
+}
+
+function haversine(lat1,lon1,lat2,lon2) {
+  const R=6371000, dLat=(lat2-lat1)*Math.PI/180, dLon=(lon2-lon1)*Math.PI/180;
+  const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+  return Math.round(R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a)));
+}
+
+function fmtDist(m) { return m<1000?`${m}m`:`${(m/1609).toFixed(1)} mi`; }
+
+function save() {
+  localStorage.setItem('huntItems', JSON.stringify(items));
+  syncToCode();
+}
+
+function addItem() {
+  if (!isPro && items.length >= FREE_LIMIT) {
+    showView('pro');
+    showToast(`Free limit is ${FREE_LIMIT} items. Upgrade to Pro for unlimited.`);
+    return;
+  }
+  const input = document.getElementById('itemInput');
+  const val = input.value.trim();
+  if (!val) return;
+  items.unshift({ id: Date.now(), name: val.charAt(0).toUpperCase()+val.slice(1), category: detectCat(val), status:'idle', price:null, store:null, nearby:false });
+  input.value = '';
+  save(); render(); updateStats();
+  if (navigator.vibrate) navigator.vibrate(30);
+}
+
+function deleteItem(id) {
+  items = items.filter(i => i.id !== id);
+  save(); render(); updateStats();
+}
+
+function render() {
+  const list = document.getElementById('itemList');
+  const filtered = activeFilter === 'all' ? items : items.filter(i => i.category === activeFilter);
+  if (!filtered.length) {
+    list.innerHTML = `<div class="empty"><div class="empty-icon">🎯</div><div class="empty-title">NOTHING TO HUNT</div><div class="empty-sub">Add gas, groceries, meds<br>or anything you need</div></div>`;
+    return;
+  }
+  list.innerHTML = filtered.map(item => {
+    const cat = CATS[item.category];
+    const sdot = item.status==='scanning'?'scanning':item.nearby?'nearby':item.status==='found'?'found':'';
+    const statusTxt = item.status==='scanning'?'scanning...':item.nearby?'📍 NEARBY':item.store||(item.status==='found'?'found':'tap to scan');
+    const priceBadge = item.price ? `<div class="price-tag ${item.nearby?'nearby':''}">${item.price}</div>` : '';
+    return `<div class="card ${item.category}" onclick="showDeals(${item.id})">
+      <div class="card-icon">${cat.icon}</div>
+      <div class="card-info">
+        <div class="card-name">${item.name}</div>
+        <div class="card-meta"><span class="sdot ${sdot}"></span> ${statusTxt}</div>
+      </div>
+      ${priceBadge}
+      <button class="del-btn" onclick="event.stopPropagation();deleteItem(${item.id})">✕</button>
+    </div>`;
+  }).join('');
+}
+
+function updateStats() {
+  document.getElementById('itemCount').textContent = items.length;
+  document.getElementById('alertCount').textContent = items.filter(i => i.nearby).length;
+  renderNearby();
+}
+
+function filterBy(cat, el) {
+  activeFilter = cat;
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  render();
+}
+
+// ── SCANNING ──────────────────────────────────────────────
+async function getStoresOSM(lat, lon, category) {
+  const tagMap = {
+    gas:'["amenity"="fuel"]',
+    grocery:'["shop"~"supermarket|convenience|grocery"]',
+    pharmacy:'["amenity"="pharmacy"]',
+    auto:'["shop"~"car_parts|automotive"]',
+    general:'["shop"~"supermarket|convenience|department_store"]'
+  };
+  const tag = tagMap[category] || tagMap.general;
+  try {
+    const res = await fetch('https://overpass-api.de/api/interpreter', {
+      method:'POST',
+      body:`[out:json][timeout:15];node${tag}(around:6000,${lat},${lon});out 6;`
+    });
+    const json = await res.json();
+    return (json.elements||[]).map(el => ({
+      name: el.tags?.name||el.tags?.brand||'Store',
+      lat: el.lat, lon: el.lon,
+      distance: haversine(lat,lon,el.lat,el.lon)
+    })).sort((a,b)=>a.distance-b.distance);
+  } catch(e) { return []; }
+}
+
+async function getGasPrices(lat, lon) {
+  // Try alternative free gas price API first (more reliable)
+  try {
+    const res = await fetch(`https://overpass-api.de/api/interpreter`, {
+      method:'POST',
+      body:`[out:json][timeout:10];node[amenity=fuel](around:8000,${lat},${lon});out 10;`
+    });
+    const json = await res.json();
+    const stations = (json.elements||[]).map(el => ({
+      name: el.tags?.name || el.tags?.brand || 'Gas Station',
+      lat: el.lat, lon: el.lon,
+      distance: Math.round(Math.sqrt(Math.pow((el.lat-lat)*111000,2)+Math.pow((el.lon-lon)*85000,2))),
+      price: el.tags?.['fuel:octane_95'] ? `$${el.tags['fuel:octane_95']}/gal` : null,
+      priceNum: parseFloat(el.tags?.['fuel:octane_95']||'0')
+    })).sort((a,b)=>a.distance-b.distance);
+    if (stations.length) return stations;
+  } catch(e) {}
+  // GasBuddy fallback
+  try {
+    const res = await fetch('https://www.gasbuddy.com/graphql', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        operationName:'LocationBySearchTerm',
+        variables:{lat,lng:lon,fuel:1},
+        query:`query LocationBySearchTerm($lat:Float,$lng:Float){locationBySearchTerm(lat:$lat,lng:$lng){stations{results{name address{line1}prices{formattedPrice}latitude longitude}}}}`
+      })
+    });
+    if (!res.ok) throw new Error();
+    const json = await res.json();
+    return (json?.data?.locationBySearchTerm?.stations?.results||[])
+      .filter(s=>s.prices?.length)
+      .map(s=>({
+        name:s.name,
+        address:s.address?.line1||'',
+        price:s.prices[0]?.formattedPrice||'N/A',
+        priceNum:parseFloat((s.prices[0]?.formattedPrice||'0').replace(/[^0-9.]/g,'')),
+        lat:s.latitude, lon:s.longitude,
+        distance:haversine(lat,lon,s.latitude,s.longitude)
+      })).sort((a,b)=>a.priceNum-b.priceNum);
+  } catch(e) { return await getStoresOSM(lat,lon,'gas'); }
+}
+
+async function scanAll() {
+  if (!currentLat) { showToast('Enable location first'); return; }
+  const btn = document.getElementById('scanBtn');
+  btn.disabled=true; btn.textContent='SCANNING...';
+  items = items.map(i => ({...i, status:'scanning'}));
+  render();
+  for (const item of items) {
+    try {
+      const results = item.category==='gas'
+        ? await getGasPrices(currentLat,currentLon)
+        : await getStoresOSM(currentLat,currentLon,item.category);
+      const idx = items.findIndex(i=>i.id===item.id);
+      if (idx!==-1 && results.length) {
+        const best = results[0];
+        const displayPrice = best.price && best.price !== 'N/A' ? best.price : (item.category==='gas' ? 'Call for price' : fmtDist(best.distance));
+        items[idx] = {...items[idx], status:'found', price:displayPrice, store:best.name, nearby:best.distance<=800, allResults:results};
+      } else if (idx!==-1) { items[idx].status='idle'; }
+      render(); updateStats();
+    } catch(e) {}
+  }
+  save(); btn.disabled=false; btn.textContent='⚡ SCAN NOW';
+  if (navigator.vibrate) navigator.vibrate([50,30,50]);
+}
+
+function startAutoScan() {
+  if (autoScanInterval) clearInterval(autoScanInterval);
+  autoScanInterval = setInterval(() => {
+    if (currentLat) scanAll();
+  }, 30 * 60 * 1000);
+}
+
+// ── GEO ALERTS ────────────────────────────────────────────
+function checkNearbyAlerts() {
+  if (!isPro) return;
+  const nearbyItems = items.filter(i => i.nearby);
+  nearbyItems.forEach(item => {
+    if (Notification.permission === 'granted') {
+      new Notification(`🎯 HUNT: ${item.name} nearby!`, {
+        body: `${item.store} — ${item.price} · Best price near you`,
+        icon: '/icons/icon128.png'
+      });
+    }
+  });
+}
+
+function renderNearby() {
+  const list = document.getElementById('nearbyList');
+  const nearby = items.filter(i => i.nearby);
+  if (!nearby.length) {
+    list.innerHTML = `<div class="no-nearby"><div style="font-size:36px;margin-bottom:10px">📍</div><div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;color:#333;margin-bottom:6px">NOTHING NEARBY YET</div><div style="font-size:12px">Scan your list to find deals<br>close to your location</div></div>`;
+    return;
+  }
+  list.innerHTML = nearby.map(item => `
+    <div class="nearby-card">
+      <div class="nearby-card-name">${CATS[item.category].icon} ${item.name}</div>
+      <div class="nearby-card-store">${item.store||'Nearby store'}</div>
+      <div class="nearby-card-price">${item.price||'—'}</div>
+      <div class="nearby-card-dist">📍 Less than 0.5 mi away</div>
+    </div>
+  `).join('');
+}
+
+async function showDeals(id) {
+  const item = items.find(i=>i.id===id);
+  if (!item||!currentLat) { showToast('Enable location to see deals'); return; }
+  document.getElementById('modalTitle').textContent = item.name.toUpperCase();
+  document.getElementById('modalSub').textContent = 'cheapest options near you';
+  document.getElementById('modalBody').innerHTML = '<div class="loading-msg">pulling real prices...</div>';
+  document.getElementById('modalOverlay').classList.add('open');
+  try {
+    const results = item.allResults || (item.category==='gas'
+      ? await getGasPrices(currentLat,currentLon)
+      : await getStoresOSM(currentLat,currentLon,item.category));
+    if (!results?.length) {
+      document.getElementById('modalBody').innerHTML='<div class="loading-msg">No results found nearby.</div>';
+      return;
+    }
+    document.getElementById('modalBody').innerHTML = results.slice(0,6).map((r,i) => `
+      <div class="deal-row">
+        <div>
+          <div class="deal-store">${r.name}${i===0?'<span class="best-badge">CHEAPEST</span>':''}</div>
+          <div class="deal-dist">${fmtDist(r.distance)} away${r.address?' · '+r.address:''}</div>
+        </div>
+        <div class="deal-price ${i===0?'best':''}">${r.price||fmtDist(r.distance)}</div>
+      </div>
+    `).join('');
+    const idx = items.findIndex(i=>i.id===id);
+    if (idx!==-1) { items[idx].allResults = results; save(); }
+  } catch(e) {
+    document.getElementById('modalBody').innerHTML='<div class="loading-msg">Error loading results.</div>';
+  }
+}
+
+// ── SYNC ──────────────────────────────────────────────────
+function generateSyncCode() {
+  const code = Math.random().toString(36).substring(2,10).toUpperCase();
+  syncCode = code;
+  localStorage.setItem('huntSyncCode', code);
+  document.getElementById('syncCodeInput').value = code;
+  document.getElementById('syncStatusText').textContent = `active · code: ${code}`;
+  showToast(`Sync code: ${code} — enter this in your extension`);
+  syncToCode();
+}
+
+function applySync() {
+  const code = document.getElementById('syncCodeInput').value.trim().toUpperCase();
+  if (!code) { showToast('Enter a sync code'); return; }
+  syncCode = code;
+  localStorage.setItem('huntSyncCode', code);
+  document.getElementById('syncStatusText').textContent = `synced · code: ${code}`;
+  const savedItems = localStorage.getItem(`hunt_sync_${code}`);
+  if (savedItems) {
+    items = JSON.parse(savedItems);
+    save(); render(); updateStats();
+    showToast('List synced from extension!');
+  } else {
+    syncToCode();
+    showToast(`Code saved. Open extension and enter: ${code}`);
+  }
+}
+
+function syncToCode() {
+  if (!syncCode) return;
+  localStorage.setItem(`hunt_sync_${syncCode}`, JSON.stringify(items));
+}
+
+// ── PRO / LICENSE ─────────────────────────────────────────
+function activateLicense() {
+  const key = document.getElementById('licKeyInput').value.trim().toUpperCase();
+  const valid = KEY_PREFIXES.some(p => key.startsWith(p)) && key.length >= 12;
+  if (!valid) {
+    showToast('Invalid key. Check your email after purchase.');
+    window.open(STRIPE.monthly, '_blank');
+    return;
+  }
+  isPro = true;
+  localStorage.setItem('huntPro', 'true');
+  localStorage.setItem('huntLicenseKey', key);
+  updateProUI();
+  startAutoScan();
+  if (Notification.permission === 'default') Notification.requestPermission();
+  showToast('✓ Pro activated!');
+  showView('list');
+}
+
+// ── TOAST ─────────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// ── START ─────────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>
